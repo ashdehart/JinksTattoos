@@ -35,6 +35,9 @@ const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in ms
 // Minimum elapsed ms since page load before accepting a submission
 const MIN_ELAPSED_MS = 3000;
 
+// Workers AI model for pre-moderation
+const AI_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+
 // ── Entry point ───────────────────────────────────────────────────────────────
 export default {
   async fetch(request, env) {
@@ -110,7 +113,7 @@ export default {
       );
     }
 
-    // ── Commit to GitHub ──────────────────────────────────────────────────────
+    // ── Build review payload ──────────────────────────────────────────────────
     const timestamp = Date.now();
     const randomHex = Array.from(crypto.getRandomValues(new Uint8Array(4)))
                           .map(b => b.toString(16).padStart(2, '0'))
@@ -128,6 +131,72 @@ export default {
 
     const fileContent = btoa(JSON.stringify(reviewData, null, 2));
 
+    // ── Workers AI pre-filter ─────────────────────────────────────────────────
+    // CRITICAL: any failure here (timeout, parse error, bad response, env.AI
+    // unavailable) must fall through silently — AI never gates a submission.
+    // Rejected reviews go to reviews/ai-rejected/ for manual audit; the
+    // submitter always receives a 201 so they cannot probe the classifier.
+    let aiRejected = false;
+    try {
+      const aiResponse = await env.AI.run(AI_MODEL, {
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a content moderator for a tattoo studio review page. ' +
+              'Classify the review as genuine ("approve") or spam/abusive/nonsense ("reject"). ' +
+              'Reply with only valid JSON: {"verdict":"approve"} or {"verdict":"reject"}.',
+          },
+          {
+            role: 'user',
+            content: `Name: ${safeName}\nReview: ${safeBody}`,
+          },
+        ],
+        max_tokens: 30,
+      });
+      const text = (aiResponse?.response || '').trim();
+      const match = text.match(/\{[^}]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        aiRejected = parsed.verdict === 'reject';
+      }
+    } catch (err) {
+      // AI unavailable or response unparseable — fall through to pending write
+      console.error('AI pre-filter error (falling through to pending):', err?.message);
+    }
+
+    if (aiRejected) {
+      // Store for manual review; do not block the response on this write
+      fetch(
+        `https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/reviews/ai-rejected/${filename}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${env.GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+            'User-Agent': 'jinks-review-worker',
+          },
+          body: JSON.stringify({
+            message: `review: ai-rejected submission ${filename}`,
+            content: fileContent,
+          }),
+        }
+      ).then(r => {
+        if (!r.ok) console.error('GitHub ai-rejected write failed:', r.status);
+      }).catch(err => {
+        console.error('GitHub ai-rejected write error:', err?.message);
+      });
+
+      return new Response(
+        JSON.stringify({ ok: true, message: 'Review submitted — thank you!' }),
+        {
+          status: 201,
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // ── Commit to GitHub (pending — passes to Action for moderation) ──────────
     const githubRes = await fetch(
       `https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/reviews/pending/${filename}`,
       {

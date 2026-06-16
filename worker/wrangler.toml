@@ -9,6 +9,12 @@ kv_namespaces = [
   { binding = "RATE_LIMIT_KV", id = "9a8d37402c1646f59f70bb859f4a13e7" }
 ]
 
+# Workers AI binding — account-level service, no id needed.
+# Provides env.AI.run() for the pre-moderation pass.
+# Free tier: 10,000 inferences/day.
+[ai]
+binding = "AI"
+
 # Secrets are set via:
 #   wrangler secret put GITHUB_TOKEN
 #   wrangler secret put GITHUB_OWNER

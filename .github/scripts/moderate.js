@@ -39,6 +39,13 @@ const OUTPUT_FILE  = path.join(REPO_ROOT, 'reviews.json');
 // ensures no unsanitized filename ever reaches a shell command or fs call.
 const VALID_FILENAME = /^[0-9]+-[a-f0-9]+\.json$/;
 
+// ── Gibberish/entropy constants — tune these to adjust strictness ─────────────
+const GIBBERISH_MIN_WORD_LEN      = 5;    // only test words with at least this many alpha chars
+const GIBBERISH_MAX_WORD_LEN      = 20;   // any single alpha token longer than this is suspicious
+const GIBBERISH_MIN_VOWEL_RATIO   = 0.12; // a plausible word must be >=12% vowels (y counts)
+const GIBBERISH_MAX_CONSONANT_RUN = 6;    // reject a word with this many consecutive non-vowels
+const GIBBERISH_WORD_FAIL_RATIO   = 0.40; // reject body if >=40% of tested words are gibberish
+
 // ── Find files added in this push ────────────────────────────────────────────
 // git diff --name-only HEAD^ HEAD gives us the list of changed files in the
 // commit that triggered this workflow run.
@@ -162,9 +169,12 @@ function moderate({ name, body }) {
     return { pass: false, reason: 'all-caps body' };
   }
 
-  // Repeated-character spam (e.g. "aaaaaaaaa", "!!!!!!!!!")
+  // Repeated-character spam — checked on both body AND name
   if (/(.)\1{7,}/.test(body)) {
-    return { pass: false, reason: 'repeated characters' };
+    return { pass: false, reason: 'repeated characters in body' };
+  }
+  if (/(.)\1{4,}/.test(name)) {
+    return { pass: false, reason: 'repeated characters in name' };
   }
 
   // Profanity word list — whole-word, case-insensitive
@@ -188,5 +198,42 @@ function moderate({ name, body }) {
     return { pass: false, reason: 'multiple URLs' };
   }
 
+  // Gibberish/entropy floor — catches keysmash and mixed-case noise like
+  // "ahfghaodfhlaieufHa;iofhbvEJcFKLEf". Tests words >= GIBBERISH_MIN_WORD_LEN
+  // alpha chars; rejects the body if >= GIBBERISH_WORD_FAIL_RATIO of them fail.
+  const bodyWords = body.trim().split(/\s+/);
+  const checkedWords = bodyWords.filter(
+    w => w.replace(/[^a-z]/gi, '').length >= GIBBERISH_MIN_WORD_LEN
+  );
+  if (checkedWords.length > 0) {
+    const failCount = checkedWords.filter(isWordGibberish).length;
+    if (failCount / checkedWords.length >= GIBBERISH_WORD_FAIL_RATIO) {
+      return { pass: false, reason: 'gibberish content' };
+    }
+  }
+
   return { pass: true, reason: 'ok' };
+}
+
+// Returns true if a single word token looks like gibberish.
+// 'y' is treated as a vowel to avoid false-positives on words like "rhythm".
+function isWordGibberish(word) {
+  const w = word.toLowerCase().replace(/[^a-z]/g, '');
+  if (w.length < GIBBERISH_MIN_WORD_LEN) return false;
+
+  // Any single alpha token longer than GIBBERISH_MAX_WORD_LEN is suspicious —
+  // genuine English words are nearly never this long.
+  if (w.length > GIBBERISH_MAX_WORD_LEN) return true;
+
+  const VOWELS = new Set(['a', 'e', 'i', 'o', 'u', 'y']);
+  const vowelCount = Array.from(w).filter(c => VOWELS.has(c)).length;
+  if (vowelCount / w.length < GIBBERISH_MIN_VOWEL_RATIO) return true;
+
+  // Consonant-run check
+  let maxRun = 0, run = 0;
+  for (const c of w) {
+    run = VOWELS.has(c) ? 0 : run + 1;
+    if (run > maxRun) maxRun = run;
+  }
+  return maxRun >= GIBBERISH_MAX_CONSONANT_RUN;
 }
