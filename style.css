@@ -1,0 +1,1891 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   JINKS TATTOOS — style.css
+   ─────────────────────────────────────────────────────────────────────
+   This file controls the look of every page on the site. The HTML files
+   (index.html, schedule.html, etc.) all link to THIS file via:
+       <link rel="stylesheet" href="style.css" />
+ 
+   HOW TO READ THIS FILE:
+   - Sections are marked with big ═══ headers like this one.
+   - Each CSS "rule" targets an HTML element using a "selector":
+       • .classname    targets any element with class="classname"
+       • #idname       targets the one element with id="idname"
+       • elementname   targets all elements of that type (e.g. "body", "a")
+   - Curly braces { } contain the styles (properties) for that selector.
+   - Comments (like this) are ignored by the browser — they're just notes.
+ 
+   SITE STRUCTURE REMINDER (top to bottom on index.html):
+     1. NAV             — top bar with logo and menu links
+     2. HERO            — big homepage intro with title and buttons
+     3. MARQUEE         — orange scrolling ticker strip
+     4. SECTION 1: BIO       — "Meet the Artist" (red background)
+     5. SECTION 2: CATALOG   — "Work & Prints" (dark grungy background)
+     6. SECTION 3: POLICIES  — "Studio Policies" (red background)
+     7. SECTION 4: REVIEWS   — "Reviews" (dark grungy background)
+     8. FOOTER          — navy bar at the bottom
+   ═══════════════════════════════════════════════════════════════════════ */
+ 
+ 
+/* Import Google Fonts so we can use "Pacifico", "Cormorant Garamond", and
+   "Outfit" anywhere on the site. These download when the page loads. */
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Outfit:wght@200;300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rye&display=swap');
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   DESIGN TOKENS (a.k.a. the site's "brand kit")
+   ─────────────────────────────────────────────────────────────────────
+   :root means "the whole document". Anything defined here becomes a
+   reusable variable we can reference elsewhere with var(--name).
+   If you ever want to change the red, you only change it in ONE place
+   (here) and the whole site updates.
+───────────────────────────────────────────────────────────────────── */
+:root {
+  /* COLOR-SCHEME LOCK
+     Tells the browser "I'm handling colors myself — do not auto-adjust
+     for dark mode or apply OS-level color tinting." This prevents iOS
+     Safari (especially on iPad and newer iPhones) from washing out our
+     reds and shifting our intentional palette in unexpected ways. */
+  color-scheme: only light;
+
+  /* Brand colors */
+  --red:    #E1291D;  /* Primary red — bio section bg, policies section bg, CTAs */
+  --navy:   #07376A;  /* Royal blue — footer bg, accent details */
+  --orange: #EF9115;  /* Gold/orange — marquee strip, accents, Book Now button */
+  --cream:  #E8D9B3;  /* Yellow/cream — catalog bg, reviews bg, body text on dark */
+  --black:  #0e0d0d;  /* Near-black — default text, dark accents */
+ 
+  /* Grunge palette additions */
+  --grime:  #1a1816;  /* Warm dark — grungy section backgrounds */
+  --soot:   #141210;  /* Darker warm black — depth layers */
+ 
+  /* Font families (fallbacks listed in case Google Fonts fails to load) */
+  --title:  'Pacifico', cursive;                      /* Handwritten script — "Jinks" logos/titles */
+  --serif:  'Cormorant Garamond', Georgia, serif;     /* Elegant italic serif — section headings + prose */
+  --sans:   'Outfit', sans-serif;                     /* Clean modern sans — small UI labels + buttons */
+  --bioname: 'Rye', serif;
+ 
+  /* Easing curve for animations — makes movement feel smooth and "natural"
+     instead of robotic. Used everywhere via var(--ease). */
+  --ease:   cubic-bezier(0.16, 1, 0.3, 1);
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   RESET — remove default browser styles
+   ─────────────────────────────────────────────────────────────────────
+   Browsers come with built-in spacing and sizing that's inconsistent.
+   We wipe the slate clean here so every element starts from zero.
+───────────────────────────────────────────────────────────────────── */
+ 
+/* "*" means "every element". The "::before" and "::after" are
+   pseudo-elements (generated content) — we reset those too. */
+*, *::before, *::after {
+  box-sizing: border-box;  /* Makes width/height include padding+border (saner math) */
+  margin: 0;               /* Kill default margins */
+  padding: 0;              /* Kill default padding */
+}
+ 
+/* Smooth-scroll when clicking anchor links like href="#catalog" */
+html { scroll-behavior: smooth; font-size: 18px; }
+ 
+/* Default body styles — inherited by everything inside <body> */
+body {
+  font-family: var(--sans);   /* Default font: Outfit */
+  background: var(--black);   /* Fallback background (most sections override this) */
+  color: var(--cream);        /* Default text color */
+  font-weight: 300;           /* Light weight by default */
+  line-height: 1.75;          /* Space between lines of text (1.75x the font size) */
+  overflow-x: hidden;         /* Prevent horizontal scrollbars from rogue elements */
+  cursor: none;               /* Hide normal mouse cursor — we draw our own (see #cursor) */
+}
+ 
+/* Links inherit surrounding text color and have no underline by default */
+a { color: inherit; text-decoration: none; }
+ 
+/* Remove bullet points from lists */
+ul { list-style: none; }
+ 
+/* Images fill their container by default */
+img { display: block; width: 100%; }
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   CUSTOM CURSOR (the little dot + ring that follows the mouse)
+   ─────────────────────────────────────────────────────────────────────
+   Instead of the normal arrow, we show a small orange dot (#cursor)
+   with a larger ring around it (#cursor-ring). Both follow the mouse
+   via JavaScript in index.html. On hover over links/buttons, they
+   grow and turn red (also handled in JS).
+───────────────────────────────────────────────────────────────────── */
+ 
+/* The small filled dot that sits at the cursor point */
+#cursor {
+  width: 10px; height: 10px;
+  border-radius: 50%;              /* 50% makes a square into a circle */
+  background: var(--orange);
+  position: fixed;                 /* Fixed = stays in place relative to browser window */
+  top: 0; left: 0;                 /* JS moves it by changing top/left */
+  pointer-events: none;            /* Clicks pass through — cursor doesn't block anything */
+  z-index: 9999;                   /* Sits on top of almost everything */
+  transform: translate(-50%,-50%); /* Centers the dot ON the mouse point */
+  transition: width .3s var(--ease), height .3s var(--ease),
+              background .3s, border-radius .3s;  /* Smooth grow/shrink on hover */
+  mix-blend-mode: screen;          /* Glowy blend with colors behind it */
+}
+ 
+/* The larger hollow ring that trails slightly behind the dot */
+#cursor-ring {
+  width: 36px; height: 36px;
+  border: 1.5px solid rgba(239,145,21,.45);  /* Semi-transparent orange outline */
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 9998;       /* Just below the main cursor dot */
+  transform: translate(-50%,-50%);
+  transition: left .09s var(--ease), top .09s var(--ease),  /* .09s = the trailing "lag" effect */
+              width .35s var(--ease), height .35s var(--ease),
+              border-color .3s;
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   FILM GRAIN OVERLAY (heavy noise texture over the whole page)
+   ─────────────────────────────────────────────────────────────────────
+   A gritty noise texture laid over the ENTIRE page for that worn,
+   underground, crumpled-newspaper feel. Cranked up from the old
+   version for more visible texture.
+
+   NOTE: feColorMatrix saturate=0 makes sure the noise is grayscale.
+   Without it, RGB turbulence noise can introduce color casts on
+   wide-gamut displays (iPad / newer iPhone), washing out reds.
+───────────────────────────────────────────────────────────────────── */
+#grain {
+  position: fixed;
+  inset: -50%;          /* Stretches 50% beyond each edge — gives room to jitter */
+  width: 200%; height: 200%;
+  /* Background is an SVG with a turbulence filter (random noise) encoded right in the CSS */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: .055;        /* Stronger grain for grungy feel */
+  pointer-events: none;
+  z-index: 8000;        /* Above most content but below cursor and nav */
+  animation: grain .8s steps(1) infinite;  /* Play the "grain" keyframes below, forever */
+}
+ 
+/* Jitter the position every frame so the noise looks alive */
+@keyframes grain {
+  0%,100%{transform:translate(0,0)}   10%{transform:translate(-2%,-3%)}
+  20%{transform:translate(3%,2%)}     30%{transform:translate(-1%,4%)}
+  40%{transform:translate(4%,-1%)}    50%{transform:translate(-3%,3%)}
+  60%{transform:translate(2%,-4%)}    70%{transform:translate(-4%,1%)}
+  80%{transform:translate(1%,-2%)}    90%{transform:translate(3%,4%)}
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   GRUNGE TEXTURE — crumpled newspaper / worn leather overlay
+   ─────────────────────────────────────────────────────────────────────
+   A reusable class that layers multiple noise textures and radial
+   gradients to create the mottled, dusty, crumpled-paper look from
+   the Jinks logo. Applied to dark sections.
+
+   IMPORTANT: BOTH noise SVGs include feColorMatrix saturate=0. If one
+   layer is colored RGB noise and the other is grayscale, blend modes
+   like overlay/soft-light produce wildly different results across
+   browsers — that's what was washing out your reds on iPad.
+───────────────────────────────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────────────────────────────
+   GRUNGE TEXTURE — clean rebuild (no background-blend-mode)
+   ─────────────────────────────────────────────────────────────────────
+   background-blend-mode breaks on iPad/iPadOS Safari when combined
+   with SVG noise textures. So sections now use ONLY a solid
+   background-color. All grit/texture comes from overlay elements:
+
+     1. .section-deco::before  — low-opacity noise SVG overlay (grit)
+     2. .section-deco::after   — radial-gradient vignette (depth)
+     3. #grain (page-wide)     — animated fine film grain on top
+
+   This completely avoids background-blend-mode on sections.
+───────────────────────────────────────────────────────────────────── */
+
+/* Reusable helpers (for any future pages) */
+.grunge-bg  { background-color: var(--grime); }
+.grunge-red { background-color: var(--red); }
+
+/* ─── Section-deco: grit + vignette container ───
+   The .section-deco div already exists inside each .section-wrap
+   in the HTML. We use its ::before for the noise overlay and its
+   ::after for the corner vignette. */
+.section-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Grit texture: grayscale noise at low opacity. No blend mode —
+   it just sits as a semi-transparent layer on top of the solid
+   background color. At 7% opacity the bright noise pixels are
+   barely visible, while the dark pixels add subtle "dirt". */
+.section-deco::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: .07;
+}
+
+/* Red sections: slightly stronger grit to stand out against the red */
+.bio-wrap > .section-deco::before,
+.policies-wrap > .section-deco::before {
+  opacity: .09;
+}
+
+/* ─── Vignettes: subtle corner darkening for depth ─── */
+.bio-wrap > .section-deco::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0,0,0,.22) 100%);
+}
+
+.catalog-wrap > .section-deco::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 25%, rgba(0,0,0,.3) 100%);
+}
+
+.policies-wrap > .section-deco::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0,0,0,.22) 100%);
+}
+
+.reviews-wrap > .section-deco::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 25%, rgba(0,0,0,.3) 100%);
+}
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   DECORATIVE ELEMENTS — pool balls, diamonds, playing card suits
+   ─────────────────────────────────────────────────────────────────────
+   Semi-transparent decorative shapes scattered across sections.
+   These are added via CSS pseudo-elements and extra <style> rules
+   on the section wrappers so no HTML changes are needed.
+───────────────────────────────────────────────────────────────────── */
+ 
+/* Pool ball — a circle with a stripe and number.
+   Used as a floating decorative element in dark sections. */
+.pool-ball-deco {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+ 
+/* Diamond suit shape — the playing card diamond ♦
+   Rendered via rotated squares with borders. */
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   NAV BAR — the fixed top navigation bar on every page
+   ─────────────────────────────────────────────────────────────────────
+   Contains the "Jinks" logo on the left and the menu links + "Book Now"
+   button on the right. Sits pinned to the top of every page.
+───────────────────────────────────────────────────────────────────── */
+ 
+/* The whole <nav> element — the entire top bar */
+nav {
+  position: fixed;                  /* Pinned to top, stays put while scrolling */
+  top: 0; left: 0; right: 0;        /* Stretches edge to edge */
+  z-index: 1000;
+  display: flex;                    /* Flexbox = logo on one side, links on other */
+  align-items: center;              /* Vertically center logo and links */
+  justify-content: space-between;   /* Push logo left, links right */
+  padding: 1.2rem 2.8rem;
+  transition: background .4s, backdrop-filter .4s, -webkit-backdrop-filter .4s;  /* Smooth fade when scrolled */
+}
+ 
+/* When the user scrolls past 60px, JavaScript adds the "scrolled" class to
+   the nav. That triggers this style: a dark blurred background so the nav
+   stays legible over any section. */
+nav.scrolled {
+  background: rgba(14,13,13,.82);             /* Near-black at 82% opacity */
+  -webkit-backdrop-filter: blur(20px);        /* Safari needs the prefix */
+  backdrop-filter: blur(20px);                /* Frosted-glass blur of whatever's behind */
+  border-bottom: 1px solid rgba(239,145,21,.12);
+}
+ 
+/* The "Home" link in the top-left of the nav (replaces the old Jinks wordmark).
+   Styled to match the other nav links so the bar feels balanced. */
+.nav-home-link {
+  font-size: .68rem;
+  font-weight: 400;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(232,217,179,.5);
+  position: relative;
+  transition: color .25s;
+}
+.nav-home-link::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -3px;
+  width: 0;
+  height: 1px;
+  background: var(--orange);
+  transition: width .3s var(--ease);
+}
+.nav-home-link:hover { color: var(--cream); }
+.nav-home-link:hover::after { width: 100%; }
+ 
+/* The <ul> containing the menu link items (Home, Shop, Catalog, Book Now) */
+.nav-links {
+  display: flex;              /* Arrange links in a horizontal row */
+  gap: 2.2rem;                /* Space between each link */
+  align-items: center;
+}
+ 
+/* Each individual menu link in the nav (Home, Shop, Catalog) */
+.nav-links a {
+  font-size: .68rem;
+  font-weight: 400;
+  letter-spacing: .22em;         /* Wide letter-spacing = "tracked out" look */
+  text-transform: uppercase;
+  color: rgba(232,217,179,.5);   /* Cream at 50% opacity = muted by default */
+  position: relative;            /* Needed so the ::after underline below can position itself */
+  transition: color .25s;
+}
+ 
+/* The animated underline under each nav link.
+   ::after creates a generated element attached to the end of each link. */
+.nav-links a::after {
+  content: '';                   /* Required for ::after to render, even if empty */
+  position: absolute;
+  left: 0; bottom: -3px;
+  width: 0;                      /* Starts invisible — width animates on hover */
+  height: 1px;
+  background: var(--orange);
+  transition: width .3s var(--ease);
+}
+ 
+/* On hover: link text brightens and underline slides out to full width */
+.nav-links a:hover { color: var(--cream); }
+.nav-links a:hover::after { width: 100%; }
+ 
+/* The special "Book Now" button inside the nav — styled differently from
+   the plain menu links. "!important" forces these styles to win over the
+   generic .nav-links a rules above. */
+.nav-book {
+  padding: .44rem 1.3rem !important;
+  background: var(--orange) !important;   /* Orange pill */
+  color: var(--black) !important;
+  font-weight: 500 !important;
+  transition: background .25s !important;
+}
+.nav-book:hover { background: #d47d0e !important; }  /* Darker orange on hover */
+.nav-book::after { display: none !important; }        /* No underline for this button */
+ 
+/* The hamburger menu button (three stacked lines) — hidden on desktop,
+   shown on mobile via the responsive section at the bottom of this file. */
+.nav-toggle {
+  display: none;                  /* Hidden by default */
+  flex-direction: column; gap: 5px;
+  cursor: none;
+  background: none; border: none; padding: 4px;
+}
+.nav-toggle span {                /* Each of the three lines inside the hamburger */
+  display: block;
+  width: 22px; height: 1.5px;
+  background: var(--cream);
+  transition: all .3s;            /* So JS can animate them into an "X" when open */
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   HERO — the big homepage intro area (top of index.html)
+   ─────────────────────────────────────────────────────────────────────
+   Full-screen section with a background image (hero-bg.jpeg), a red glow
+   at the top, the giant "Jinks Tattoos" title, and two CTA buttons.
+   This is what you see FIRST when you land on the homepage.
+───────────────────────────────────────────────────────────────────── */
+ 
+/* The outer hero wrapper — full width, at least one full screen tall */
+.hero {
+  position: relative;          /* So absolutely-positioned children position against this */
+  width: 100%;
+  min-height: 100svh;          /* svh = "small viewport height", plays better w/ mobile browser bars */
+  overflow: hidden;            /* Crop anything that spills outside */
+  display: flex;
+  flex-direction: column;      /* Stack children vertically */
+  align-items: center;         /* Center them horizontally */
+}
+ 
+/* The background image of the hero (the photo behind the title).
+   Positioned absolutely to fill the .hero area. */
+.hero-bg {
+  position: absolute; inset: 0;                              /* "inset: 0" = top/right/bottom/left all 0 */
+  /* "contain" = show the WHOLE image without cropping, at every breakpoint. */
+  background: #0e0d0d url('hero-bg11.jpeg') 20% 20% / 120% auto no-repeat;
+  will-change: transform;                                    /* Hint to browser: this will animate */
+}
+ 
+/* A dark gradient overlay on the background image so white text
+   stays legible over bright parts of the photo */
+.hero-bg::after {
+  content: '';
+  position: absolute; inset: 0;
+background:
+  rgba(14,13,13,.2),
+  linear-gradient(to bottom,
+    rgba(14,13,13,.1) 0%,
+    rgba(14,13,13,.0) 30%,
+    rgba(14,13,13,.3) 70%,
+    rgba(14,13,13,.85) 100%
+  );
+}
+ 
+/* The red glow effect at the top of the hero — feels like neon light
+   is bleeding down from above the title */
+.hero-glow {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 320px;
+  z-index: 2;                  /* Above the background image but below the title */
+  pointer-events: none;
+}
+.hero-glow::before {           /* The bright central red "bloom" */
+  content: '';
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 80%; height: 100%;
+  background: radial-gradient(ellipse 72% 100% at 50% 0%,
+    rgba(225,41,29,.7) 0%, rgba(225,41,29,.24) 52%, transparent 80%);
+  filter: blur(10px);          /* Softens the gradient for a glow effect */
+}
+.hero-glow::after {            /* A softer red wash that extends further down */
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 100%;
+  background: linear-gradient(to bottom,
+    rgba(225,41,29,.55) 0%, rgba(225,41,29,.08) 60%, transparent 100%);
+}
+ 
+/* The <canvas> used for the animated floating shapes in the hero.
+   The shapes themselves are drawn by JavaScript in index.html. */
+#hero-canvas {
+  position: absolute; inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+ 
+/* The Jinks Tattoos logo image on the homepage (replaces old text title) */
+.hero-title-img {
+  position: relative; z-index: 3;              /* Above the glow and canvas */
+  margin-top: -3rem;
+  width: clamp(200px, 32vw, 380px);
+  height: auto;
+  display: block;
+  /* Soft red glow around the badge to echo the old neon feel */
+  filter: drop-shadow(0 0 40px rgba(225,41,29,.55))
+          drop-shadow(0 6px 18px rgba(0,0,0,.7));
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity .9s var(--ease), transform .9s var(--ease);
+}
+.hero-title-img.revealed { opacity: 1; transform: none; }
+ 
+/* A flexible spacer that pushes the CTA buttons to the bottom of the hero. */
+.hero-spacer { flex: 1; }
+ 
+/* The row containing the "Book Now" and "Shop Prints" buttons under the title */
+.cta-row {
+  position: relative; z-index: 3;
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;                 /* Space between the two buttons */
+  padding: 0 1.5rem 4rem;
+  flex-wrap: wrap;             /* On narrow screens, buttons wrap to a new line */
+}
+ 
+/* Shared styles for both CTA buttons ("Book Now" + "Shop Prints") */
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;                 /* Space between button text and its arrow icon */
+  padding: .95rem 2.5rem;
+  font-family: var(--sans);
+  font-size: .72rem; font-weight: 400;
+  letter-spacing: .22em; text-transform: uppercase;
+  position: relative;          /* So the ::before shine effect can position against it */
+  overflow: hidden;            /* Crop the shine effect to button bounds */
+  transition: gap .3s var(--ease);
+  cursor: none;
+}
+ 
+/* The diagonal "shine" that sweeps across a CTA button on hover */
+.cta-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,.09);
+  transform: translateX(-100%) skewX(-12deg);
+  transition: transform .45s var(--ease);
+}
+.cta-btn:hover::before { transform: translateX(130%) skewX(-12deg); }
+.cta-btn:hover { gap: 1.2rem; }
+ 
+/* Primary (filled red) CTA button — "Book Now" */
+.cta-btn--primary { background: var(--red); color: #fff; }
+.cta-btn--primary:hover { background: #c4211a; }
+ 
+/* Ghost (outlined) CTA button — "Shop Prints" */
+/* .cta-btn--ghost { background: transparent; color: var(--cream); border: 1.5px solid rgba(232,217,179,.4); } */
+/* .cta-btn--ghost:hover { border-color: var(--cream); } */
+ 
+.cta-btn--ghost { background: var(--red); color: #fff; }
+.cta-btn--ghost:hover { background: #c4211a; }
+ 
+/* The small arrow icons inside the CTA buttons */
+.cta-btn svg {
+  width: 13px; height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   MARQUEE TICKER — the scrolling orange strip below the hero
+   ─────────────────────────────────────────────────────────────────────
+   Displays repeating words like "Jinks Tattoos · Garden of Ink ·
+   Ogden, Utah..." scrolling infinitely to the left.
+───────────────────────────────────────────────────────────────────── */
+ 
+/* The orange container strip itself */
+.marquee-strip {
+  background: #E8D9B3;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: .85rem 0;
+  position: relative; z-index: 10;
+  border-top: 2px solid rgba(225,41,29,.4);
+  border-bottom: 2px solid rgba(225,41,29,.4);
+}
+ 
+/* The inner row of items — this is what actually animates */
+.marquee-inner {
+  display: inline-flex;
+  gap: 0;
+  animation: marquee 28s linear infinite;
+}
+.marquee-inner:hover { animation-play-state: paused; }
+ 
+/* Each individual item inside the marquee */
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0 2rem;
+  font-size: .72rem; font-weight: 500;
+  letter-spacing: .25em; text-transform: uppercase;
+  color: var(--black);
+}
+ 
+/* Small dot separator between marquee items — now a diamond shape */
+.marquee-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--black);
+  opacity: .5;
+  flex-shrink: 0;
+  transform: rotate(45deg);  /* Square rotated 45° = diamond ♦ */
+}
+ 
+/* The seamless scroll animation */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   SECTION UTILITIES — shared helpers for all homepage sections
+───────────────────────────────────────────────────────────────────── */
+ 
+/* The outer wrapper of each homepage section */
+.section-wrap {
+  position: relative;
+  overflow: hidden;
+}
+ 
+/* The giant faded "01"/"02"/"03"/"04" number that sits behind each section */
+.ghost-num {
+  position: absolute;
+  font-family: var(--title); font-weight: 700;
+  font-size: clamp(12rem, 22vw, 20rem);
+  line-height: 1;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  white-space: nowrap;
+}
+ 
+/* Scroll-reveal animation: elements fade in and slide up */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1.4s var(--ease), transform 1.4s var(--ease);
+}
+.reveal.visible { opacity: 1; transform: none; }
+ 
+/* Small uppercase label above section headings */
+.eyebrow {
+  font-size: .62rem;
+  letter-spacing: .42em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: .9rem;
+}
+ 
+/* Big italic section headings */
+.dh {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.1;
+  margin-bottom: 1.4rem;
+}
+ 
+/* Short accent line below each section heading */
+.red-rule {
+  width: 0;
+  height: 2px;
+  margin-bottom: 2.4rem;
+  transition: width 1.1s .15s var(--ease), opacity .6s .15s;
+  opacity: 0;
+}
+.red-rule.visible { width: 56px; opacity: 1; }
+ 
+/* Section container widths */
+.section       { padding: 7rem 2rem; max-width: 960px;  margin: 0 auto; position: relative; z-index: 1; }
+.section--wide { padding: 2rem 2rem; max-width: 1180px; margin: 0 auto; position: relative; z-index: 1; }
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════
+   HOMEPAGE SECTION 1 — "Meet the Artist" (BIO)
+   ─────────────────────────────────────────────────────────────────────
+   RED background with grunge texture. Contains Jolie's name, photo,
+   Instagram link, and bio paragraphs.
+   ═══════════════════════════════════════════════════════════════════════ */
+ 
+/* Section 1 wrapper — RED grungy background.
+   BOTH noise SVGs are forced grayscale via feColorMatrix saturate=0.
+   Without this on the second layer, RGB turbulence noise gets blended
+   through soft-light and washes the red toward pink on iPad. */
+.bio-wrap {
+  background: var(--red);
+}
+ 
+/* Decorative diamond ♦ in top-right of bio section */
+.bio-wrap::after {
+  content: '♦';
+  position: absolute;
+  top: 12%; right: 8%;
+  font-size: 6rem;
+  color: var(--cream);
+  opacity: .04;
+  transform: rotate(12deg);
+  pointer-events: none;
+  z-index: 0;
+  font-family: serif;
+}
+ 
+/* Override shared utilities inside Section 1 */
+.bio-wrap .eyebrow   { color: var(--orange); }
+.bio-wrap .dh        { color: var(--cream); transform: rotate(-.6deg); display: inline-block; }
+.bio-wrap .red-rule  { background: var(--orange); }
+.bio-wrap .ghost-num { color: rgba(232,217,179,.04); top: -2rem; right: -2rem; }
+ 
+/* Two-column grid layout */
+.bio-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 5rem;
+  align-items: start;
+}
+.bio-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;       /* Centers everything horizontally in this column */
+  text-align: center;        /* Centers any text inside */
+}
+.bio-right {   display: flex;
+  flex-direction: column;
+  align-items: center;       /* Centers everything horizontally in this column */
+  text-align: center;        /* Centers any text inside */
+  }
+ 
+/* Big "Jolie Lowder" name */
+.bio-kicker {
+  font-family: var(--bioname);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  color: #fff;
+  line-height: 1.15;
+  transform: rotate(-1.2deg);
+  display: inline-block;
+  margin-bottom: 1.6rem;
+  white-space: nowrap;
+}
+ 
+ 
+/* Photo of Jolie */
+.bio-photo {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  margin-bottom: 1.8rem;
+  border: 1px solid rgba(232,217,179,.18);
+  box-shadow: 0 18px 50px rgba(0,0,0,.45);
+  filter: saturate(.95) contrast(1.02);
+  border-radius: 100px;
+}
+ 
+/* Instagram pill link */
+.bio-ig {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .68rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: rgba(232,217,179,.5);
+  border: 1px solid rgba(232,217,179,.15);
+  padding: .4rem .9rem;
+  transition: color .25s, border-color .25s;
+}
+.bio-ig:hover { color: var(--orange); border-color: var(--orange); }
+ 
+/* Bio text paragraphs */
+.bio-text {
+  font-size: .95rem;
+  line-height: 1.95;
+  color: rgba(232,217,179,.75);
+  margin-bottom: 1.3rem;
+}
+.bio-text em { font-style: italic; color: var(--cream); }
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════
+   HOMEPAGE SECTION 2 — "Catalog" (WORK & PRINTS GRID)
+   ─────────────────────────────────────────────────────────────────────
+   DARK GRUNGY background (was cream). The crumpled newspaper texture.
+   Pool ball and diamond decorative elements float behind the content.
+   ═══════════════════════════════════════════════════════════════════════ */
+ 
+/* Section 2 wrapper — DARK grungy textured background.
+   Both noise layers desaturated for cross-device color consistency. */
+.catalog-wrap {
+  background-color: var(--grime);
+}
+ 
+/* Pool ball decorative element — bottom-left of catalog section */
+.catalog-wrap::before {
+  content: '';
+  position: absolute;
+  bottom: 8%; left: 4%;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  /* Pool ball: dark circle with a cream stripe band through the middle */
+  background:
+    linear-gradient(to bottom,
+      var(--red) 0%, var(--red) 32%,
+      var(--cream) 32%, var(--cream) 68%,
+      var(--red) 68%, var(--red) 100%
+    );
+  opacity: .045;
+  pointer-events: none;
+  z-index: 0;
+  box-shadow: inset 0 0 20px rgba(0,0,0,.5),
+              inset -8px -8px 20px rgba(0,0,0,.3);
+  transform: rotate(-15deg);
+}
+ 
+/* Diamond suit shape — top-right of catalog section */
+.catalog-wrap::after {
+  content: '♦';
+  position: absolute;
+  top: 14%; right: 6%;
+  font-size: 8rem;
+  color: var(--red);
+  opacity: .06;
+  transform: rotate(-8deg);
+  pointer-events: none;
+  z-index: 0;
+  font-family: serif;
+}
+ 
+/* Override shared utilities for Section 2 — now on dark background */
+.catalog-wrap .eyebrow   { color: var(--orange); }
+.catalog-wrap .dh        { color: var(--cream); }
+.catalog-wrap .red-rule  { background: var(--red); }
+.catalog-wrap .ghost-num { color: rgba(232,217,179,.03); bottom: -2rem; left: -1rem; }
+ 
+/* Catalog grid */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 3px;
+  background: rgba(232,217,179,.08);  /* Cream hairlines between tiles */
+  margin-top: 3rem;
+  position: relative; z-index: 1;
+}
+ 
+/* Each catalog tile */
+.catalog-item {
+  position: relative;
+  aspect-ratio: 3/4;
+  background: var(--black);
+  overflow: hidden;
+  cursor: none;
+}
+ 
+/* Image inside each tile */
+.catalog-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .65s var(--ease);
+}
+.catalog-item:hover img { transform: scale(1.08); }
+ 
+/* Placeholder for tiles without images */
+.catalog-placeholder {
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1rem;
+  background: linear-gradient(145deg, rgba(7,55,106,.5), rgba(14,13,13,.8));
+}
+ 
+/* Pulsing ring in placeholder */
+.catalog-placeholder::before {
+  content: '';
+  width: 38px; height: 38px;
+  border: 1px solid rgba(239,145,21,.3);
+  border-radius: 50%;
+  animation: pulseRing 2.8s ease infinite;
+}
+@keyframes pulseRing {
+  0%,100%{transform:scale(.8);opacity:.5}
+  50%    {transform:scale(1.3);opacity:.12}
+}
+.catalog-placeholder span {
+  font-size: .58rem; letter-spacing: .22em;
+  text-transform: uppercase; color: rgba(232,217,179,.2);
+}
+ 
+/* Hover overlay on catalog tiles */
+.catalog-overlay {
+  position: absolute; inset: 0;
+  z-index: 2;
+  background: rgba(14,13,13,.88);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  opacity: 0;
+  transition: opacity .35s;
+}
+.catalog-item:hover .catalog-overlay { opacity: 1; }
+ 
+.catalog-overlay-title { font-family: var(--serif); font-size: 1.2rem; font-weight: 600; color: var(--cream); }
+.catalog-overlay-price { font-size: .78rem; color: var(--orange); letter-spacing: .12em; }
+ 
+/* "View" / "Book" button in the overlay */
+.catalog-overlay-btn {
+  margin-top: .6rem;
+  padding: .5rem 1.4rem;
+  border: 1px solid var(--orange);
+  font-size: .62rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--orange);
+  transition: background .25s, color .25s;
+  cursor: none;
+}
+.catalog-overlay-btn:hover { background: var(--orange); color: var(--black); }
+ 
+/* Index number on each tile */
+.catalog-num {
+  position: absolute;
+  top: .8rem; left: .85rem;
+  z-index: 3;
+  font-size: .56rem;
+  letter-spacing: .18em;
+  color: rgba(232,217,179,.4);
+  font-family: var(--sans);
+}
+ 
+/* "Print" or "Tattoo" tag on each tile */
+.catalog-tag {
+  position: absolute;
+  bottom: .8rem; right: .8rem;
+  z-index: 3;
+  font-size: .56rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  background: var(--orange);
+  color: var(--black);
+  padding: .18rem .55rem;
+  opacity: 0;
+  transition: opacity .35s;
+}
+.catalog-item:hover .catalog-tag { opacity: 1; }
+ 
+/* "View Full Shop →" link */
+.catalog-cta { margin-top: 2.2rem; text-align: right; }
+ 
+/* Generic link-button style */
+.link-btn {
+  font-size: .68rem;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  border-bottom: 1px solid;
+  padding-bottom: 3px;
+  transition: color .25s, border-color .25s;
+}
+/* Link-btn colors in catalog (now on dark background) */
+.catalog-wrap .link-btn         { color: var(--cream); border-color: rgba(232,217,179,.3); }
+.catalog-wrap .link-btn:hover   { color: var(--orange);  border-color: var(--orange); }
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════
+   HOMEPAGE SECTION 3 — "Studio Policies"
+   ─────────────────────────────────────────────────────────────────────
+   RED grungy background. Grid of 6 policy cards that are now
+   dark-themed (black cards on red background) for the underground feel.
+   ═══════════════════════════════════════════════════════════════════════ */
+ 
+/* Section 3 wrapper — RED grungy background.
+   Both noise layers desaturated. */
+.policies-wrap {
+  background: var(--red);
+}
+ 
+/* Pool ball decorative element — top-left of policies section */
+.policies-wrap::before {
+  content: '';
+  position: absolute;
+  top: 10%; left: 5%;
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  background: var(--cream);
+  opacity: .04;
+  pointer-events: none;
+  z-index: 0;
+  box-shadow: inset 0 0 15px rgba(0,0,0,.4),
+              inset -6px -6px 15px rgba(0,0,0,.2);
+}
+ 
+/* Diamond shape — bottom-right */
+.policies-wrap::after {
+  content: '♦';
+  position: absolute;
+  bottom: 10%; right: 5%;
+  font-size: 5rem;
+  color: var(--cream);
+  opacity: .05;
+  transform: rotate(18deg);
+  pointer-events: none;
+  z-index: 0;
+  font-family: serif;
+}
+ 
+/* Override shared utilities for Section 3 */
+.policies-wrap .eyebrow   { color: rgba(232,217,179,.65); }
+.policies-wrap .dh        { color: #fff; transform: rotate(.5deg); display: inline-block; }
+.policies-wrap .red-rule  { background: rgba(232,217,179,.5); }
+.policies-wrap .ghost-num { color: rgba(14,13,13,.08); top: -1rem; right: -1rem; }
+ 
+/* Policy card grid */
+/* Policy card grid — 3 columns desktop, 2 tablet, 1 mobile (handled in media queries) */
+.policies-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 3rem;
+  /* align-items: start; lets each card grow to its own content height
+     when expanded, instead of stretching to match the tallest sibling. */
+  align-items: start;
+}
+ 
+/* Individual policy cards — DARK themed, now collapsible.
+   The card wraps a <button> header and a hidden body. When the user
+   clicks the button, JS adds the "open" class, which expands the body
+   via the CSS grid-row animation below. */
+.policy-card {
+  background: rgba(14,13,13,.85);
+  position: relative;
+  overflow: hidden;
+  transition: transform .3s var(--ease), box-shadow .3s, border-color .3s;
+  z-index: 1;
+  border: 1px solid rgba(232,217,179,.08);
+}
+ 
+/* Slight lift on hover (only when not actively being expanded).
+   The rotate is gone now because the open/close animation needs the
+   card to stay axis-aligned for the chevron math to feel right. */
+.policy-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 8px 12px 0 rgba(0,0,0,.35);
+  border-color: rgba(239,145,21,.18);
+}
+ 
+/* When a card is open, give it a subtle orange edge so it's clearly the
+   "active" one in the grid. */
+.policy-card.open {
+  border-color: rgba(239,145,21,.35);
+}
+ 
+/* Orange bracket — top-left corner */
+.policy-card::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 22px; height: 22px;
+  border-top: 2.5px solid var(--orange);
+  border-left: 2.5px solid var(--orange);
+  transition: width .4s var(--ease), height .4s var(--ease);
+  pointer-events: none;
+  z-index: 2;
+}
+.policy-card:hover::before,
+.policy-card.open::before { width: 40px; height: 40px; }
+ 
+/* Navy bracket — bottom-right corner */
+.policy-card::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 14px; height: 14px;
+  border-bottom: 1.5px solid var(--navy);
+  border-right: 1.5px solid var(--navy);
+  transition: width .4s var(--ease), height .4s var(--ease);
+  pointer-events: none;
+  z-index: 2;
+}
+.policy-card:hover::after,
+.policy-card.open::after { width: 26px; height: 26px; }
+ 
+/* The clickable header that toggles the card open/closed.
+   It's a <button> for accessibility — keyboard users can Tab to it and
+   press Enter/Space, and screen readers announce it as a button. */
+.policy-toggle {
+  display: grid;
+  grid-template-columns: 1fr auto;     /* Text on left, plus icon on right */
+  grid-template-rows: auto auto;
+  column-gap: 1rem;
+  row-gap: .35rem;
+  align-items: center;
+  width: 100%;
+  padding: 1.6rem 1.6rem;
+  background: none;
+  border: none;
+  cursor: none;                        /* Match the site's hidden-cursor convention */
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  position: relative;
+  transition: background .25s;
+}
+.policy-toggle:hover { background: rgba(239,145,21,.04); }
+ 
+/* Position the index in row 1, the title in row 2, and the icon
+   spans both rows on the right. */
+.policy-toggle .policy-index { grid-column: 1; grid-row: 1; }
+.policy-toggle .policy-title { grid-column: 1; grid-row: 2; }
+.policy-toggle .policy-icon  { grid-column: 2; grid-row: 1 / span 2; }
+ 
+/* Policy index number — small uppercase "01", "02", etc. */
+.policy-index {
+  font-size: .56rem;
+  letter-spacing: .28em;
+  color: var(--orange);
+  font-weight: 500;
+  display: block;
+}
+ 
+/* Policy title — bigger serif heading */
+.policy-title {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--cream);
+  line-height: 1.25;
+  display: block;
+  /* Allow long titles like "Original Artwork & Design Integrity" to
+     wrap inside their card without pushing the icon off the edge. */
+  padding-right: .25rem;
+}
+ 
+/* The plus/×icon on the right of each toggle button.
+   It's built from two thin bars: one horizontal, one vertical. The
+   vertical bar rotates 90° when the card opens so the two bars line
+   up into an "×" rotated 45° (i.e. it goes from "+" to "×"). */
+.policy-icon {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: inline-block;
+  border: 1px solid rgba(239,145,21,.4);
+  border-radius: 50%;
+  transition: border-color .3s, transform .4s var(--ease), background .3s;
+}
+.policy-toggle:hover .policy-icon { border-color: var(--orange); }
+.policy-card.open .policy-icon {
+  background: var(--orange);
+  border-color: var(--orange);
+  transform: rotate(135deg);           /* "+" rotates to look like "×" */
+}
+ 
+.policy-icon-bar {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 10px;
+  height: 1.5px;
+  background: var(--orange);
+  transform: translate(-50%, -50%);
+  transition: background .3s, opacity .3s;
+}
+.policy-icon-bar--v { transform: translate(-50%, -50%) rotate(90deg); }
+/* When open, swap bars to dark so they show on the orange-filled circle */
+.policy-card.open .policy-icon-bar { background: var(--black); }
+ 
+/* The expanding body wrap.
+   Trick: animate grid-template-rows from 0fr → 1fr. This is the modern
+   way to animate "auto" height — it lets the browser compute the real
+   height of the inner content and smoothly tween between collapsed
+   (0fr = zero height) and expanded (1fr = natural height). */
+.policy-body-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .45s var(--ease);
+}
+.policy-card.open .policy-body-wrap {
+  grid-template-rows: 1fr;
+}
+ 
+/* The inner div needs overflow:hidden so content is clipped while the
+   row height is < its natural size. */
+.policy-body-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+ 
+/* Inner content padding — only applied to the inner so the collapsed
+   state truly collapses to 0 height (no leftover padding). */
+.policy-body-inner > * {
+  padding-left: 1.6rem;
+  padding-right: 1.6rem;
+}
+.policy-body-inner > *:last-child {
+  padding-bottom: 1.6rem;
+}
+.policy-body-inner > *:first-child {
+  padding-top: .25rem;                 /* small breathing room under header */
+}
+ 
+/* Policy body text */
+.policy-body {
+  font-size: .85rem;
+  color: rgba(232,217,179,.7);
+  line-height: 1.85;
+  margin: 0;
+}
+ 
+/* Pricing card list — used inside policy 04 */
+.policy-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  border-top: 1px solid rgba(232,217,179,.1);
+}
+.policy-list li {
+  font-size: .82rem;
+  color: rgba(232,217,179,.7);
+  line-height: 1.55;
+  padding: .7rem 0;
+  border-bottom: 1px dashed rgba(232,217,179,.08);
+}
+.policy-list li:last-child { border-bottom: none; }
+.policy-list strong {
+  color: var(--orange);
+  font-weight: 500;
+  letter-spacing: .04em;
+}
+ 
+/* Browsers with reduced-motion preference: skip the open/close animation */
+@media (prefers-reduced-motion: reduce) {
+  .policy-body-wrap { transition: none; }
+  .policy-icon { transition: none; }
+}
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════
+   HOMEPAGE SECTION 4 — "Reviews"
+   ─────────────────────────────────────────────────────────────────────
+   DARK GRUNGY background (was cream). Dark review cards with cream text.
+   Pool ball and diamond decorations.
+   ═══════════════════════════════════════════════════════════════════════ */
+ 
+/* Section 4 wrapper — DARK grungy textured background.
+   Both noise layers desaturated. */
+.reviews-wrap {
+  background-color: var(--grime);
+}
+ 
+/* Pool ball decorative element — large, top-right of reviews section */
+.reviews-wrap::before {
+  content: '';
+  position: absolute;
+  top: 15%; right: 7%;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  /* Striped pool ball look */
+  background:
+    linear-gradient(to bottom,
+      var(--navy) 0%, var(--navy) 30%,
+      var(--cream) 30%, var(--cream) 70%,
+      var(--navy) 70%, var(--navy) 100%
+    );
+  opacity: .035;
+  pointer-events: none;
+  z-index: 0;
+  box-shadow: inset 0 0 25px rgba(0,0,0,.5);
+  transform: rotate(25deg);
+}
+ 
+/* Double diamond — bottom-left */
+.reviews-wrap::after {
+  content: '♦ ♦';
+  position: absolute;
+  bottom: 8%; left: 5%;
+  font-size: 4rem;
+  color: var(--red);
+  opacity: .05;
+  transform: rotate(-5deg);
+  pointer-events: none;
+  z-index: 0;
+  font-family: serif;
+  letter-spacing: -.5rem;
+}
+ 
+/* Override shared utilities for Section 4 — now on dark background */
+.reviews-wrap .eyebrow   { color: var(--orange); }
+.reviews-wrap .dh        { color: var(--cream); }
+.reviews-wrap .red-rule  { background: var(--red); }
+.reviews-wrap .ghost-num { color: rgba(232,217,179,.025); top: -2rem; left: -1rem; }
+ 
+/* Review card grid */
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px,1fr));
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+ 
+/* Individual review cards — DARK themed */
+.review-card {
+  padding: 2.2rem;
+  border: 1px solid rgba(232,217,179,.1);
+  background: rgba(14,13,13,.7);    /* Dark translucent card */
+  position: relative;
+  transition: border-color .3s, transform .3s var(--ease), box-shadow .3s;
+}
+.review-card:hover {
+  border-color: var(--red);
+  transform: translateY(-3px);
+  box-shadow: 6px 8px 0 rgba(0,0,0,.4);
+}
+ 
+/* Decorative opening quote mark */
+.review-card::before {
+  content: '\201C';
+  font-family: var(--serif);
+  font-size: 5.5rem;
+  line-height: 1;
+  color: var(--red);
+  opacity: .22;
+  position: absolute;
+  top: .3rem; left: 1.2rem;
+  pointer-events: none;
+}
+ 
+/* Star ratings */
+.stars { display: flex; gap: .2rem; margin-bottom: 1rem; margin-top: .4rem; }
+.star  { color: var(--orange); font-size: .82rem; }
+ 
+/* Review text */
+.review-text {
+  font-size: .92rem;
+  line-height: 1.88;
+  color: rgba(232,217,179,.72);    /* Cream toned text on dark bg */
+  font-style: italic;
+  font-family: var(--serif);
+  margin-bottom: 1.2rem;
+}
+ 
+/* Author attribution */
+.review-author {
+  font-size: .63rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--red);
+  font-weight: 500;
+}
+ 
+/* Platform label */
+.review-platform {
+  font-size: .6rem;
+  color: rgba(239,145,21,.5);    /* Orange tinted on dark bg */
+  letter-spacing: .1em;
+  margin-top: .2rem;
+}
+ 
+/* "More reviews coming soon" note */
+.reviews-note {
+  font-size: .62rem;
+  color: rgba(232,217,179,.25);
+  text-align: center;
+  margin-top: 2rem;
+  letter-spacing: .15em;
+}
+ 
+/* Cusdis comment widget container */
+.reviews-comments {
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgba(232,217,179,.12);
+}
+.reviews-comments-head {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.4rem;
+  color: var(--cream);
+  margin-bottom: 1.4rem;
+  text-align: center;
+}
+
+/* ─── Dynamic reviews container ─── */
+#reviews-dynamic {
+  margin-top: 2rem;
+}
+.reviews-empty {
+  font-size: .62rem;
+  color: rgba(232,217,179,.25);
+  text-align: center;
+  letter-spacing: .15em;
+  margin-top: 1.5rem;
+}
+
+/* ─── Review submission form ─── */
+.reviews-form-wrap {
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgba(232,217,179,.12);
+}
+
+/* Honeypot field — visually hidden but present in DOM.
+   Do NOT use display:none; some bots detect and skip hidden fields. */
+input[name="website"] {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  height: 1px;
+  width: 1px;
+  pointer-events: none;
+}
+
+/* Star rating — pure CSS via RTL flip + :checked ~ sibling trick.
+   Stars are rendered right-to-left in the DOM, then flipped with
+   direction:rtl so visually they read left-to-right. When a radio
+   is :checked, all following siblings (lower-numbered = visually
+   to its left) light up via the ~ combinator. */
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: .1rem;
+  margin-bottom: 1.4rem;
+}
+.star-rating input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.star-rating label {
+  font-size: 1.5rem;
+  color: rgba(232,217,179,.18);
+  cursor: none;
+  transition: color .18s;
+  line-height: 1;
+  padding: 0 .1rem;
+}
+/* Light up the selected star and everything to its left */
+.star-rating input[type="radio"]:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: var(--orange);
+}
+.star-rating-label {
+  font-size: .62rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(232,217,179,.45);
+  display: block;
+  margin-bottom: .5rem;
+}
+
+/* Form fields */
+.review-form-field {
+  margin-bottom: 1.4rem;
+}
+.review-form-field label {
+  display: block;
+  font-size: .62rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(232,217,179,.45);
+  margin-bottom: .5rem;
+}
+.review-form-field input[type="text"],
+.review-form-field textarea {
+  width: 100%;
+  background: rgba(14,13,13,.7);
+  border: 1px solid rgba(232,217,179,.18);
+  color: var(--cream);
+  font-family: var(--sans);
+  font-size: .88rem;
+  font-weight: 300;
+  padding: .75rem 1rem;
+  outline: none;
+  resize: vertical;
+  transition: border-color .25s;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+.review-form-field input[type="text"]:focus,
+.review-form-field textarea:focus {
+  border-color: var(--orange);
+}
+.review-form-field input[type="text"].input-error,
+.review-form-field textarea.input-error {
+  border-color: var(--red);
+}
+.field-error {
+  font-size: .62rem;
+  color: var(--red);
+  margin-top: .35rem;
+  letter-spacing: .06em;
+  display: none;
+}
+.field-error.visible { display: block; }
+
+/* Submit button — matches .cta-btn--primary */
+.review-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .9rem 2.2rem;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: .72rem;
+  font-weight: 400;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  border: none;
+  cursor: none;
+  position: relative;
+  overflow: hidden;
+  transition: background .25s, opacity .25s;
+}
+.review-submit-btn:hover { background: #c4211a; }
+.review-submit-btn:disabled { opacity: .5; pointer-events: none; }
+
+/* Spinner inside submit button */
+.review-submit-btn .btn-spinner {
+  display: none;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: reviewSpin .7s linear infinite;
+}
+.review-submit-btn.loading .btn-spinner { display: block; }
+.review-submit-btn.loading .btn-text { opacity: .6; }
+@keyframes reviewSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Submission status messages */
+#review-form-status {
+  margin-top: 1.2rem;
+  font-size: .82rem;
+  line-height: 1.6;
+  display: none;
+}
+#review-form-status.success {
+  display: block;
+  color: var(--orange);
+}
+#review-form-status.error {
+  display: block;
+  color: var(--red);
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   DIAGONAL SECTION DIVIDERS
+   ─────────────────────────────────────────────────────────────────────
+   Clip-path polygons that slice section edges at diagonal angles so
+   sections bleed into each other organically.
+───────────────────────────────────────────────────────────────────── */
+ 
+/* Slices the BOTTOM-RIGHT corner down (Section 1 Bio uses this) */
+.cut-bottom-right {
+  clip-path: polygon(0 0, 100% 0, 100% 92%, 0 100%);
+  margin-bottom: -3px;
+}
+ 
+/* Slices the TOP-LEFT corner down (Section 2 Catalog uses this) */
+.cut-top-left {
+  clip-path: polygon(0 8%, 100% 0, 100% 100%, 0 100%);
+  margin-top: -3px;
+}
+ 
+/* Slices BOTH top and bottom diagonally (Section 3 Policies uses this) */
+.cut-both {
+  clip-path: polygon(0 6%, 100% 0, 100% 94%, 0 100%);
+  margin-top: -3px; margin-bottom: -3px;
+}
+ 
+/* Slices the TOP-RIGHT corner up (Section 4 Reviews uses this) */
+.cut-top-right {
+  clip-path: polygon(0 0, 100% 6%, 100% 100%, 0 100%);
+  margin-top: -3px;
+}
+ 
+ 
+/* ─────────────────────────────────────────────────────────────────────
+   FOOTER — navy bar at the very bottom of every page
+───────────────────────────────────────────────────────────────────── */
+footer {
+  background: var(--navy);
+  padding: 3rem 2.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  position: relative;
+  overflow: hidden;
+  border-top: 3px solid var(--orange);
+  /* Footer also gets subtle grunge texture — desaturated for color consistency */
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='ft'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23ft)'/%3E%3C/svg%3E");
+  background-blend-mode: soft-light;
+}
+ 
+/* Giant faded "Jinks" text in footer */
+footer::before {
+  content: 'Jinks';
+  font-family: var(--title);
+  font-weight: 700;
+  font-size: 22vw;
+  color: rgba(232,217,179,.025);
+  position: absolute;
+  bottom: -3rem; left: -1rem;
+  pointer-events: none;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+}
+ 
+/* Footer diamond decoration */
+footer::after {
+  content: '♦';
+  position: absolute;
+  top: 50%; right: 12%;
+  font-size: 3rem;
+  color: var(--orange);
+  opacity: .06;
+  transform: translateY(-50%) rotate(10deg);
+  pointer-events: none;
+  font-family: serif;
+}
+ 
+/* "Jinks Tattoos" text logo in footer */
+.footer-logo {
+  font-family: var(--title);
+  font-size: 1.9rem;
+  font-weight: 400;
+  color: var(--cream);
+}
+ 
+/* Footer link row */
+.footer-links { display: flex; gap: 2rem; }
+.footer-links a {
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(232,217,179,.4);
+  transition: color .25s;
+}
+.footer-links a:hover { color: var(--orange); }
+ 
+/* Footer copyright line */
+.footer-copy {
+  width: 100%;
+  font-size: .6rem;
+  color: rgba(232,217,179,.18);
+  text-align: center;
+  flex-basis: 100%; 
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(232,217,179,.06);
+  letter-spacing: .08em;
+}
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════
+   ENHANCED REVEALS & PARALLAX
+   ─────────────────────────────────────────────────────────────────────
+   Extra reveal variants and parallax helpers. Used on top of (or instead
+   of) the base .reveal class. Each variant gives a different "flavor" of
+   entrance animation so the page feels varied as you scroll.
+   ═══════════════════════════════════════════════════════════════════════ */
+ 
+/* ─── Reveal variants ───
+   Add these classes ALONGSIDE .reveal to change how an element enters.
+   The base .reveal handles opacity; these override the transform.
+*/
+ 
+/* Slides in from the left — for left-column content */
+.reveal-left {
+  transform: translateX(-40px);
+}
+.reveal-left.visible { transform: translate(0,0); }
+ 
+/* Slides in from the right — for right-column content */
+.reveal-right {
+  transform: translateX(40px);
+}
+.reveal-right.visible { transform: translate(0,0); }
+ 
+/* Scales up from 92% — for image tiles, cards */
+.reveal-scale {
+  transform: scale(.92) translateY(20px);
+}
+.reveal-scale.visible { transform: scale(1) translateY(0); }
+ 
+/* Blur-in — softens the entrance, feels filmic */
+.reveal-blur {
+  filter: blur(8px);
+  transition: opacity 1.4s var(--ease),
+              transform 1.4s var(--ease),
+              filter 1.4s var(--ease);
+}
+.reveal-blur.visible { filter: blur(0); }
+ 
+/* Slow, longer reveal — for headings and statement elements */
+.reveal-slow {
+  transition: opacity 1.7s var(--ease),
+              transform 1.7s var(--ease);
+}
+ 
+/* ─── Parallax helpers ───
+   JS reads data-parallax="0.3" on these elements and translates them
+   based on scroll. Higher number = moves more; negative = moves opposite.
+*/
+[data-parallax] {
+  will-change: transform;
+}
+ 
+/* ─── Hero title float ───
+   Tiny perpetual bob so the logo feels alive even after it fades in. */
+@keyframes heroFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
+}
+.hero-title-img.revealed {
+  animation: heroFloat 6s ease-in-out 1.5s infinite;
+}
+ 
+/* ─── Bio photo parallax wrapper ───
+   The photo lives in this wrapper so it can drift independently of the
+   surrounding text. The actual translate is applied via JS. */
+.bio-photo-wrap {
+  display: inline-block;
+  will-change: transform;
+}
+ 
+/* ─── Catalog tile cascade ───
+   Each tile already has a transition-delay set inline in the HTML; this
+   just tunes the easing for a more "settle" feel. */
+.catalog-item.reveal {
+  transform: scale(.94) translateY(30px);
+  transition: opacity 1.6s var(--ease),
+              transform 1.6s var(--ease);
+}
+.catalog-item.reveal.visible {
+  transform: scale(1) translateY(0);
+}
+ 
+/* ─── Marquee speed boost ───
+   When the page is actively being scrolled, JS adds .scrolling to the
+   marquee inner. The CSS swaps in a faster animation duration, then
+   smoothly returns to normal when scrolling stops. */
+.marquee-inner {
+  transition: animation-duration .8s var(--ease);
+}
+.marquee-inner.scrolling {
+  animation-duration: 12s;
+}
+ 
+/* ─── Reduced motion ───
+   For people who get motion-sick, kill the fancy stuff. They still get
+   the basic fade-in but no parallax, blur, or float. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-title-img.revealed { animation: none; }
+  [data-parallax] { transform: none !important; }
+  .reveal-blur { filter: none; transition: opacity .4s; }
+  .reveal-blur.visible { filter: none; }
+}
+ 
+/* ─── Mobile parallax dampening ───
+   Mobile browsers can stutter on heavy parallax. JS will read this CSS
+   variable and reduce parallax strength when present. */
+@media (max-width: 860px) {
+  :root { --parallax-strength: 0.4; }  /* 40% as strong as desktop */
+}
+@media (min-width: 861px) {
+  :root { --parallax-strength: 1; }
+}
+ 
+ /* ─── Slower reveals for policy + review cards ───
+   These two sections feel more impactful with a longer, more cinematic
+   fade-up. We override the default .reveal timing just for cards inside
+   the policies and reviews grids. */
+.policies-grid .policy-card.reveal,
+.reviews-grid  .review-card.reveal {
+  transition: opacity 2.2s var(--ease),
+              transform 2.2s var(--ease);
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — mobile and tablet overrides
+   ═══════════════════════════════════════════════════════════════════════ */
+ 
+/* ── Tablet and below (≤ 900px) ───────────────────────────────────── */
+@media (max-width: 900px) {
+  /* Section 1 (Bio): stack the two columns */
+  .bio-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+  .bio-photo { max-width: 340px; }
+  /* Section 2 (Catalog): 2 columns instead of 3 */
+  .catalog-grid { grid-template-columns: 1fr 1fr; }
+  /* Section 3 (Policies) and Section 4 (Reviews): single column */
+.policies-grid { grid-template-columns: 1fr 1fr; }
+  .reviews-grid  { grid-template-columns: 1fr; }
+  /* Drop the diagonal section cuts on small screens */
+  .cut-bottom-right, .cut-top-left, .cut-both, .cut-top-right { clip-path: none; margin: 0; }
+  /* Shrink the ghost numbers */
+  .ghost-num { font-size: 8rem; }
+  /* Hide decorative pool balls and diamonds on tablet */
+  .catalog-wrap::before,
+  .reviews-wrap::before {
+    width: 80px; height: 80px;
+  }
+    /* Footer: stack and center on tablet */
+  footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .footer-links { justify-content: center; }
+}
+ 
+/* ── Mobile (≤ 860px) ─────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  /* Hide desktop nav links, show hamburger */
+  .nav-links { display: none; }
+  .nav-toggle { display: flex; }
+ 
+.policies-grid { grid-template-columns: 1fr; }
+ 
+  /* Mobile dropdown menu */
+  .nav-links.open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    background: rgba(14,13,13,.97);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    padding: 2rem 1.5rem;
+    gap: 1.5rem;
+    border-bottom: 2px solid var(--orange);
+  }
+  
+  /* Hero breakpoints */
+  .hero {
+    min-height: calc((100vw + 150px) / 1.60);
+  }
+  .hero-spacer {display: none; }
+  .cta-row {margin-bottom: -1rem; }
+  
+  .hero-title-img {width: clamp(120px, 32vw, 180px); }
+  .hero-title-img {margin-top: -1.5rem; }
+  
+  #hero-canvas {display: none; }
+  
+  .hero-bg {inset: 0 -75px; }
+  .hero-bg {background-position:  50% 40px / 100% auto no-repeat; }
+  
+  .cta-row { flex-direction: row; flex-wrap: nowrap; justify-content: center; }
+  .cta-row { gap: .6rem; margin-bottom: 1.25rem; }
+  .cta-row { transform: translateY(6rem); }
+  .cta-btn { padding: .9rem 1.1rem; font-size: .7rem; }
+ 
+  /* Smaller section padding */
+  .section, .section--wide { padding: 2rem 1.5rem; }
+  /* Stack footer vertically */
+  footer { padding: 2rem 1.5rem; flex-direction: column; text-align: center; }
+  .footer-links { justify-content: center; }
+  /* Show normal cursor on mobile */
+  body { cursor: auto; }
+  #cursor, #cursor-ring { display: none; }
+  
+  /* Hide decorative elements on mobile */
+  .bio-wrap::after,
+  .catalog-wrap::before,
+  .catalog-wrap::after,
+  .policies-wrap::before,
+  .policies-wrap::after,
+  .reviews-wrap::before,
+  .reviews-wrap::after { display: none; }
+}
+ 
+/* ── Small mobile (≤ 540px) ───────────────────────────────────────── */
+@media (max-width: 540px) {
+  .catalog-grid { grid-template-columns: 1fr; }
+  .catalog-cta { text-align: center; }
+}

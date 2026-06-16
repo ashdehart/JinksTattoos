@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════════════
+     JINKS TATTOOS — index.html (HOMEPAGE)
+     ─────────────────────────────────────────────────────────────────
+     This is the main homepage. It contains:
+       1. NAV          — top navigation bar
+       2. HERO         — big intro with the "Jinks Tattoos" title
+       3. MARQUEE      — scrolling orange ticker strip
+       4. SECTION 1    — BIO ("Meet the Artist") — red background
+       5. SECTION 2    — CATALOG ("Work & Prints") — yellow background
+       6. SECTION 3    — POLICIES ("Studio Policies") — red background
+       7. SECTION 4    — REVIEWS ("Reviews") — yellow background
+       8. FOOTER       — navy bar at the bottom
+       9. <script>     — all the interactive JavaScript
+ 
+     All the styling comes from style.css. This file is purely structure
+     (HTML) and interaction (JS).
+     ═══════════════════════════════════════════════════════════════════ -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- This meta tag tells mobile browsers not to zoom out, so the site
+       renders at the correct width on phones. viewport-fit=cover lets
+       the layout extend into safe areas on iPhones with notches. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- COLOR-SCHEME LOCK
+       Tells iOS/iPadOS Safari "this site has its own intentional color
+       palette — don't apply automatic dark-mode tinting or wide-gamut
+       remapping." Combined with the matching :root { color-scheme }
+       declaration in style.css, this prevents the washed-out reds that
+       were appearing on iPad and newer iPhones. -->
+  <meta name="color-scheme" content="only light" />
+  <title>Jinks Tattoos</title>
+  <!-- Link to our stylesheet. The browser fetches style.css and applies it. -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+ 
+  <!-- Custom cursor elements (the dot and ring that follow the mouse).
+       They're empty divs — the JS at the bottom moves them around, and
+       the CSS styles them. -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+ 
+  <!-- Film grain overlay — empty div that the CSS fills with a noise texture. -->
+  <div id="grain"></div>
+ 
+  <!-- ═══════════════════════════════════════════════════════════════
+       NAV BAR
+       The top navigation. Contains the "Jinks" logo, menu links,
+       the orange "Book Now" button, and a hamburger menu for mobile.
+       ═══════════════════════════════════════════════════════════════ -->
+  <nav id="nav">
+    <!-- Left-side Home link (replaces the old "Jinks" wordmark) -->
+    <a href="index.html" class="nav-home-link">Home</a>
+ 
+    <!-- The menu links. On mobile, these are hidden until the hamburger
+         is tapped (see the JS at the bottom of this file). -->
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#catalog">Catalog</a></li>   <!-- href="#catalog" jumps to the section with id="catalog" below -->
+      <li><a href="schedule.html" class="nav-book">Book Now</a></li>
+    </ul>
+ 
+    <!-- Hamburger menu button (three stacked <span> lines).
+         Hidden on desktop, shown on mobile. Clicking it opens/closes
+         the mobile menu (handled in JS at bottom of file). -->
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+ 
+  <!-- ═══════════════════════════════════════════════════════════════
+       HERO
+       The big intro section you see first when landing on the homepage.
+       Contains the background image, the red glow, the animated canvas
+       shapes, the "Jinks Tattoos" title, and the two CTA buttons.
+       ═══════════════════════════════════════════════════════════════ -->
+  <section class="hero" id="hero">
+    <div class="hero-bg" id="heroBg"></div>          <!-- Background photo (hero-bg.jpeg, styled in CSS) -->
+    <div class="hero-glow"></div>                     <!-- Red glow at the top -->
+    <canvas id="hero-canvas"></canvas>                <!-- Canvas where JS draws animated floating shapes -->
+ 
+    <!-- Logo gets a tiny negative parallax — drifts opposite to scroll for a hero "anchor" feel.
+         JS also adds a perpetual gentle float once it fades in. -->
+    <img src="jinkslogo.png" alt="Jinks Tattoos" class="hero-title-img" id="heroTitle" data-parallax="-0.15" />
+    <div class="hero-spacer"></div>                   <!-- Empty flex spacer that pushes CTAs to the bottom -->
+ 
+    <!-- The row of two call-to-action buttons under the title -->
+    <div class="cta-row">
+      <!-- Primary button: red filled "Book Now" -->
+      <a href="schedule.html" class="cta-btn cta-btn--primary">
+        Book Now
+      </a>
+      <!-- Ghost button: outlined "Shop Prints" -->
+      <a href="shop.html" class="cta-btn cta-btn--ghost">
+        Shop Prints
+      </a>
+    </div>
+  </section>
+ 
+  <!-- ═══════════════════════════════════════════════════════════════
+       MARQUEE TICKER
+       The scrolling orange band below the hero. The items inside are
+       added by JavaScript (see the "MARQUEE" block near the bottom
+       of this file) and duplicated so the scroll loops seamlessly.
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="marquee-strip">
+    <div class="marquee-inner" id="marqueeInner">
+      <!-- Items get injected here by JS — intentionally empty -->
+    </div>
+  </div>
+ 
+  <!-- ═══════════════════════════════════════════════════════════════
+       HOMEPAGE SECTION 1 — BIO ("Meet the Artist")
+       Red background. Two columns on desktop:
+         LEFT  = "Jolie Lowder" name + Instagram pill
+         RIGHT = heading + three paragraphs of bio
+       Has a diagonal bottom-right cut that bleeds into Section 2.
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-wrap bio-wrap cut-bottom-right" id="bio-wrap">
+    <!-- Invisible parallax handle — JS will translate this on scroll.
+         Reserved for future visible decorative content; currently no-op. -->
+    <div class="section-deco" data-parallax="0.25"></div>
+ 
+    <section class="section--wide">
+      <div class="bio-layout">
+ 
+        <!-- LEFT COLUMN: name + Instagram link -->
+        <div class="bio-left reveal">
+          <span class="eyebrow">The Artist</span>
+          <div class="bio-kicker">Jolie Lowder</div>
+ 
+          <!-- Photo wrapped in a parallax div so it drifts independently
+               of the surrounding text. The image itself gets a scale-up reveal. -->
+          <div class="bio-photo-wrap" data-parallax="0.18">
+            <img src="joliebio2.jpeg" alt="Jolie Lowder tattooing" class="bio-photo reveal reveal-scale" style="transition-delay:.12s" />
+          </div>
+ 
+          <a href="https://instagram.com/j.lnks" target="_blank" rel="noopener" class="bio-ig">
+            <!-- Inline SVG Instagram icon -->
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+            @j.lnks
+          </a>
+        </div>
+ 
+        <!-- RIGHT COLUMN: heading + 3 bio paragraphs.
+             Each element uses "reveal" so it fades in on scroll.
+             Paragraphs get reveal-right so they slide in from the right.
+             The inline "transition-delay" staggers them. -->
+        <div class="bio-right">
+          <h2 class="dh reveal reveal-blur reveal-slow" style="transition-delay:.08s">Meet the Artist</h2>
+          <div class="red-rule reveal"></div>
+ 
+          <p class="bio-text reveal reveal-right" style="transition-delay:.06s">
+            Jolie Lowder, also known professionally as Jinks and recognized online as Instagram <em>@j.Lnks</em>,
+            is a rising tattoo artist whose work blends intentional linework, thoughtful design, and a distinct
+            artistic voice. This website serves as both a gallery and a booking space, where clients can explore
+            her portfolio, purchase original art prints, and schedule tattoo appointments directly.
+          </p>
+          <p class="bio-text reveal reveal-right" style="transition-delay:.14s">
+            Jolie is currently tattooing at Garden of Ink, a woman-owned tattoo studio in Ogden, Utah that
+            prioritizes creativity, inclusivity, and craftsmanship. Alongside other experienced artists,
+            she continues to refine her technical skill while developing a style that is expressive,
+            detail-driven, and deeply personal.
+          </p>
+          <p class="bio-text reveal reveal-right" style="transition-delay:.22s">
+            Her work spans custom tattoos, flash designs, and standalone illustrations, with a focus on clean
+            execution and meaningful collaboration. Whether you are looking for a custom piece, a carefully
+            curated flash tattoo, or a high-quality print to collect, Jolie approaches every project with care,
+            professionalism, and respect for the client experience. Jolie is currently accepting new clients.
+          </p>
+        </div>
+ 
+      </div>
+    </section>
+  </div>
+ 
+  <!-- ═══════════════════════════════════════════════════════════════
+       HOMEPAGE SECTION 2 — CATALOG ("Work & Prints")
+       Yellow/cream background. 3-column grid of tattoo and print tiles.
+       Has a diagonal top-left cut that matches the bottom of Section 1.
+       id="catalog" is what the nav's "Catalog" link scrolls to.
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-wrap catalog-wrap cut-top-left" id="catalog">
+    <!-- Invisible parallax handle for future decorative content. -->
+    <div class="section-deco" data-parallax="0.2"></div>
+ 
+    <section class="section--wide">
+      <span class="eyebrow reveal">Work &amp; Prints</span>
+      <h2 class="dh reveal reveal-blur" style="transition-delay:.08s">Catalog</h2>
+      <div class="red-rule reveal"></div>
+ 
+      <!-- The grid of catalog tiles -->
+      <div class="catalog-grid">
+ 
+        <!-- Tile 01 — empty placeholder (no image yet) -->
+        <div class="catalog-item reveal">
+          <span class="catalog-num">01</span>
+          <img src="IMG_3402.jpeg" alt="Tattoo by Jinks" />
+          <div class="catalog-placeholder"><span>Add image</span></div>
+          <div class="catalog-overlay">
+            <span class="catalog-overlay-title">Custom Piece</span>
+            <span class="catalog-overlay-price">Book to inquire</span>
+            <a href="schedule.html" class="catalog-overlay-btn">Book</a>
+          </div>
+          <span class="catalog-tag">Tattoo</span>
+        </div>
+ 
+        <!-- Tile 02 — empty placeholder -->
+        <div class="catalog-item reveal" style="transition-delay:.08s">
+          <span class="catalog-num">02</span>
+          <img src="IMG_3450.jpeg" alt="Tattoo by Jinks" />
+          <div class="catalog-placeholder"><span>Add image</span></div>
+          <div class="catalog-overlay">
+            <span class="catalog-overlay-title">Custom Piece</span>
+            <span class="catalog-overlay-price">Book to inquire</span>
+            <a href="schedule.html" class="catalog-overlay-btn">Book</a>
+          </div>
+          <span class="catalog-tag">Tattoo</span>
+        </div>
+ 
+        <!-- Tile 03 — real tattoo photo -->
+        <div class="catalog-item reveal" style="transition-delay:.16s">
+          <span class="catalog-num">03</span>
+          <img src="IMG_1833.jpeg" alt="Tattoo by Jinks" />
+          <div class="catalog-overlay">
+            <span class="catalog-overlay-title">Custom Piece</span>
+            <span class="catalog-overlay-price">Book to inquire</span>
+            <a href="schedule.html" class="catalog-overlay-btn">Book</a>
+          </div>
+          <span class="catalog-tag">Tattoo</span>
+        </div>
+ 
+        <!-- Tile 04 — real tattoo photo -->
+        <div class="catalog-item reveal" style="transition-delay:.06s">
+          <span class="catalog-num">04</span>
+          <img src="IMG_3620.jpeg" alt="Tattoo by Jinks" />
+          <div class="catalog-overlay">
+            <span class="catalog-overlay-title">Custom Piece</span>
+            <span class="catalog-overlay-price">Book to inquire</span>
+            <a href="schedule.html" class="catalog-overlay-btn">Book</a>
+          </div>
+          <span class="catalog-tag">Tattoo</span>
+        </div>
+ 
+        <!-- Tile 05 — real tattoo photo -->
+        <div class="catalog-item reveal" style="transition-delay:.14s">
+          <span class="catalog-num">05</span>
+          <img src="IMG_2938.jpeg" alt="Tattoo by Jinks" />
+          <div class="catalog-overlay">
+            <span class="catalog-overlay-title">Custom Piece</span>
+            <span class="catalog-overlay-price">Book to inquire</span>
+            <a href="schedule.html" class="catalog-overlay-btn">Book</a>
+          </div>
+          <span class="catalog-tag">Tattoo</span>
+        </div>
+ 
+        <!-- Tile 06 — real tattoo photo -->
+        <div class="catalog-item reveal" style="transition-delay:.22s">
+          <span class="catalog-num">06</span>
+          <img src="IMG_8208.jpeg" alt="Tattoo by Jinks" />
+          <div class="catalog-overlay">
+            <span class="catalog-overlay-title">Custom Piece</span>
+            <span class="catalog-overlay-price">Book to inquire</span>
+            <a href="schedule.html" class="catalog-overlay-btn">Book</a>
+          </div>
+          <span class="catalog-tag">Tattoo</span>
+        </div>
+ 
+      </div>
+ 
+    </section>
+  </div>
+ 
+ <!-- ═══════════════════════════════════════════════════════════════
+       HOMEPAGE SECTION 3 — POLICIES ("Studio Policies")
+       Bold red background. 3-column grid of collapsible policy cards.
+       Each card starts collapsed showing just the title + "+" button.
+       Click to expand the full policy text; "+" rotates to "×".
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-wrap policies-wrap cut-both" id="policies-wrap">
+    <!-- Invisible parallax handle for future decorative content. -->
+    <div class="section-deco" data-parallax="0.22"></div>
+ 
+    <section class="section--wide">
+      <span class="eyebrow reveal">Before You Book</span>
+      <h2 class="dh reveal" style="transition-delay:.08s">Studio Policies</h2>
+      <div class="red-rule reveal"></div>
+ 
+      <!-- Grid of 6 collapsible policy cards. Each <button> wraps the
+           header (number + title + plus icon). Clicking it toggles the
+           "open" class on its parent .policy-card, which expands the
+           hidden body via CSS grid-template-rows animation. -->
+      <div class="policies-grid">
+ 
+        <div class="policy-card reveal">
+          <button class="policy-toggle" aria-expanded="false">
+            <span class="policy-index">01</span>
+            <span class="policy-title">18+ Only</span>
+            <span class="policy-icon" aria-hidden="true">
+              <span class="policy-icon-bar"></span>
+              <span class="policy-icon-bar policy-icon-bar--v"></span>
+            </span>
+          </button>
+          <div class="policy-body-wrap">
+            <div class="policy-body-inner">
+              <p class="policy-body">Tattooing is strictly limited to clients who are 18 years of age or older. Valid, government-issued identification is required at every appointment.</p>
+            </div>
+          </div>
+        </div>
+ 
+        <div class="policy-card reveal" style="transition-delay:.08s">
+          <button class="policy-toggle" aria-expanded="false">
+            <span class="policy-index">02</span>
+            <span class="policy-title">Deposits</span>
+            <span class="policy-icon" aria-hidden="true">
+              <span class="policy-icon-bar"></span>
+              <span class="policy-icon-bar policy-icon-bar--v"></span>
+            </span>
+          </button>
+          <div class="policy-body-wrap">
+            <div class="policy-body-inner">
+              <p class="policy-body">A non-refundable $50 deposit is required to confirm and secure your appointment. Your deposit will be applied toward the final cost of your tattoo. Design work will not begin until a deposit has been received. Jolie offers free touchups for a year after the initial tattoo is completed.</p>
+            </div>
+          </div>
+        </div>
+ 
+        <div class="policy-card reveal" style="transition-delay:.16s">
+          <button class="policy-toggle" aria-expanded="false">
+            <span class="policy-index">03</span>
+            <span class="policy-title">Cancellations &amp; Reschedules</span>
+            <span class="policy-icon" aria-hidden="true">
+              <span class="policy-icon-bar"></span>
+              <span class="policy-icon-bar policy-icon-bar--v"></span>
+            </span>
+          </button>
+          <div class="policy-body-wrap">
+            <div class="policy-body-inner">
+              <p class="policy-body">Your deposit will be honored and transferred if you reschedule at least 24 hours prior to your scheduled appointment. Rescheduling with less than 24 hours' notice will result in forfeiture of your deposit. If you do not arrive within 20 minutes of your scheduled appointment time without prior communication, your appointment will be cancelled and your deposit forfeited.</p>
+            </div>
+          </div>
+        </div>
+ 
+        <div class="policy-card reveal" style="transition-delay:.24s">
+          <button class="policy-toggle" aria-expanded="false">
+            <span class="policy-index">04</span>
+            <span class="policy-title">Pricing</span>
+            <span class="policy-icon" aria-hidden="true">
+              <span class="policy-icon-bar"></span>
+              <span class="policy-icon-bar policy-icon-bar--v"></span>
+            </span>
+          </button>
+          <div class="policy-body-wrap">
+            <div class="policy-body-inner">
+              <p class="policy-body">All pricing below are for custom designs. Flash is priced separately. Session times reflect active tattoo time, not the total appointment length. If the time limit is reached, there is a 30-minute window to wrap up — anything beyond that requires booking a new session. A 2% processing fee applies to Venmo and card payments. If the tattoo takes less time than the amount slotted, the full price still stands unless otherwise stated by the artist. Payment is due in full at the end of your session.</p>
+              <ul class="policy-list">
+                <li><strong>Short session</strong> — Up to 2.5 hours · $110/hr · $100 minimum</li>
+                <li><strong>Half Day session</strong> — 3 hours · $300 flat</li>
+                <li><strong>Full Day session</strong> — 6 hours · $600 flat</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+ 
+        <div class="policy-card reveal" style="transition-delay:.32s">
+          <button class="policy-toggle" aria-expanded="false">
+            <span class="policy-index">05</span>
+            <span class="policy-title">Health &amp; Medical Disclosure</span>
+            <span class="policy-icon" aria-hidden="true">
+              <span class="policy-icon-bar"></span>
+              <span class="policy-icon-bar policy-icon-bar--v"></span>
+            </span>
+          </button>
+          <div class="policy-body-wrap">
+            <div class="policy-body-inner">
+              <p class="policy-body">Please disclose any relevant medical conditions, allergies, or medications prior to your appointment. This includes but is not limited to: blood disorders or use of blood-thinning medications; skin conditions, allergies, or sensitivities; any disorders or diseases that could impact the process of being tattooed or healing a tattoo.</p>
+            </div>
+          </div>
+        </div>
+ 
+        <div class="policy-card reveal" style="transition-delay:.40s">
+          <button class="policy-toggle" aria-expanded="false">
+            <span class="policy-index">06</span>
+            <span class="policy-title">Original Artwork &amp; Design Integrity</span>
+            <span class="policy-icon" aria-hidden="true">
+              <span class="policy-icon-bar"></span>
+              <span class="policy-icon-bar policy-icon-bar--v"></span>
+            </span>
+          </button>
+          <div class="policy-body-wrap">
+            <div class="policy-body-inner">
+              <p class="policy-body">Jolie does not copy artwork or designs created by other artists without their explicit, written consent. Jolie takes artistic integrity seriously and asks that you do the same. Jolie does not use AI-generated imagery in their design process, and she will not tattoo any design that has been created using AI tools. All work is original and hand-crafted.</p>
+            </div>
+          </div>
+        </div>
+ 
+      </div>
+    </section>
+  </div>
+ 
+  <!-- ═══════════════════════════════════════════════════════════════
+       HOMEPAGE SECTION 4 — REVIEWS
+       Yellow/cream background. Has:
+         - 3 static testimonial cards at the top (placeholder text)
+         - A Cusdis comment widget below where real visitors can
+           submit their own reviews.
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="section-wrap reviews-wrap cut-top-right">
+    <!-- Invisible parallax handle for future decorative content. -->
+    <div class="section-deco" data-parallax="0.2"></div>
+ 
+    <section class="section">
+      <span class="eyebrow reveal">Client Love</span>
+      <h2 class="dh reveal reveal-blur" style="transition-delay:.08s">Reviews</h2>
+      <div class="red-rule reveal"></div>
+ 
+      <!-- The 3 static testimonial cards (pinned Instagram comments). -->
+      <div class="reviews-grid">
+        <div class="review-card reveal">
+          <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+          <p class="review-text">"You are literally the best!!! Thank you so much!!"</p>
+          <p class="review-platform">Instagram</p>
+        </div>
+        <div class="review-card reveal" style="transition-delay:.1s">
+          <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+          <p class="review-text">"ahhh girl I love and appreciate you so much, thank you so much for always doing amazing work and bringing my visions to life."</p>
+          <p class="review-platform">Instagram</p>
+        </div>
+        <div class="review-card reveal" style="transition-delay:.2s">
+          <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+          <p class="review-text">"I love when Jolie works her magic."</p>
+          <p class="review-platform">Instagram</p>
+        </div>
+      </div>
+
+      <!-- Approved client reviews loaded from reviews.json via JS below -->
+      <div id="reviews-dynamic"></div>
+
+      <!-- ── Review submission form ────────────────────────────────────────
+           POSTs to a Cloudflare Worker which validates and queues the
+           review in GitHub. The Worker URL and reviews.json URL are set
+           as constants in the <script> block at the bottom of this file.
+           ───────────────────────────────────────────────────────────── -->
+      <div class="reviews-form-wrap">
+        <span class="eyebrow reveal">Leave a Review</span>
+        <h3 class="dh reveal reveal-blur" style="transition-delay:.06s; font-size:clamp(1.4rem,3vw,2rem)">Share Your Experience</h3>
+        <div class="red-rule reveal"></div>
+
+        <form id="review-form" novalidate>
+          <!-- Honeypot: real users never touch this. Bots that auto-fill all
+               inputs will populate it, letting the Worker reject silently. -->
+          <input name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <!-- Page-load timestamp: used by the Worker to reject submissions
+               that arrive under 3 seconds after page load (bot timing). -->
+          <input type="hidden" name="loaded-at" id="loadedAt" />
+
+          <div class="review-form-field">
+            <label for="reviewer-name">Your Name</label>
+            <input type="text" id="reviewer-name" name="reviewer-name" maxlength="80" autocomplete="name" placeholder="e.g. Sarah M." />
+            <span class="field-error" id="name-error">Please enter your name.</span>
+          </div>
+
+          <div class="review-form-field">
+            <span class="star-rating-label">Rating</span>
+            <!-- Stars are ordered 5→1 in DOM + flex-direction:row-reverse
+                 so that the CSS :checked ~ sibling trick works correctly.
+                 Visually they render left-to-right (1 to 5). -->
+            <div class="star-rating" role="radiogroup" aria-label="Star rating">
+              <input type="radio" name="rating" id="star5" value="5" /><label for="star5" title="5 stars">★</label>
+              <input type="radio" name="rating" id="star4" value="4" /><label for="star4" title="4 stars">★</label>
+              <input type="radio" name="rating" id="star3" value="3" /><label for="star3" title="3 stars">★</label>
+              <input type="radio" name="rating" id="star2" value="2" /><label for="star2" title="2 stars">★</label>
+              <input type="radio" name="rating" id="star1" value="1" /><label for="star1" title="1 star">★</label>
+            </div>
+            <span class="field-error" id="rating-error">Please select a star rating.</span>
+          </div>
+
+          <div class="review-form-field">
+            <label for="review-body">Your Review</label>
+            <textarea id="review-body" name="body" rows="5" maxlength="800" placeholder="Tell us about your experience (10–800 characters)"></textarea>
+            <span class="field-error" id="body-error">Please write at least 10 characters.</span>
+          </div>
+
+          <button type="submit" class="review-submit-btn">
+            <span class="btn-text">Submit Review</span>
+            <span class="btn-spinner" aria-hidden="true"></span>
+          </button>
+
+          <div id="review-form-status" role="alert" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+  </div>
+ 
+  <!-- ═══════════════════════════════════════════════════════════════
+       FOOTER
+       Navy bar at the bottom of the page. Contains the logo, a row of
+       links, and a copyright line. The giant faded "Jinks" text
+       bleeding out of the bottom-left is added via CSS ::before.
+       ═══════════════════════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-logo">Jinks Tattoos</div>
+    <ul class="footer-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="#catalog">Catalog</a></li>
+      <li><a href="schedule.html">Book</a></li>
+      <li><a href="https://www.instagram.com/j.lnks" target="_blank" rel="noopener">@j.lnks</a></li>
+    </ul>
+    <p class="footer-copy">© 2025 Jolie Lowder · Jinks Tattoos · Garden of Ink, Ogden UT</p>
+  </footer>
+ 
+ 
+  <!-- ═══════════════════════════════════════════════════════════════
+       JAVASCRIPT
+       Everything below this line adds interactive behavior to the page.
+       The browser runs these scripts in order after the HTML loads.
+ 
+       Each block is wrapped in a "(function() { ... })()" — this is an
+       "IIFE" (Immediately Invoked Function Expression). It's a way to
+       keep the variables inside each block separate from the others,
+       so naming conflicts don't happen between blocks.
+       ═══════════════════════════════════════════════════════════════ -->
+  <script>
+  
+  /* ─────────────────────────────────
+     SCROLL RESTORATION OVERRIDE
+     By default, browsers try to remember and restore your scroll position
+     across refreshes. On pages with lazy-loaded content (canvases, images,
+     fonts), the page height changes as things render in, so the browser's
+     "remembered" pixel position ends up wrong — often dumping the user
+     near the bottom of the page.
+ 
+     We tell the browser to manage scroll restoration manually (i.e. don't
+     auto-restore), and explicitly scroll to the top on every load.
+  ───────────────────────────────── */
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+  window.scrollTo(0, 0);
+  
+  /* ─────────────────────────────────
+     COLOR PALETTE
+     A JavaScript object holding the same brand colors as the CSS
+     variables. Used by the canvas drawing code below.
+  ───────────────────────────────── */
+  const P = { red:'#E1291D', navy:'#07376A', orange:'#EF9115', cream:'#E8D9B3', black:'#0e0d0d' };
+ 
+ 
+  /* ─────────────────────────────────
+     CUSTOM CURSOR MOVEMENT
+     On every mouse move, reposition the cursor dot and ring to follow
+     the pointer. On hover over any <a> or <button>, they grow and turn
+     red; on mouse leave, they shrink and turn orange again.
+  ───────────────────────────────── */
+  const cur  = document.getElementById('cursor');      /* The small dot */
+  const ring = document.getElementById('cursor-ring'); /* The larger ring */
+ 
+  /* Listen for mouse movement across the whole document */
+  document.addEventListener('mousemove', e => {
+    /* e.clientX / e.clientY = mouse X/Y position in pixels from top-left of window */
+    cur.style.left = e.clientX+'px';  cur.style.top = e.clientY+'px';
+    ring.style.left = e.clientX+'px'; ring.style.top = e.clientY+'px';
+  });
+ 
+  /* For every link and button on the page, add hover listeners that
+     change the cursor's size and color to the "active" state */
+  document.querySelectorAll('a,button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cur.style.width = '20px'; cur.style.height = '20px';
+      cur.style.background = P.red; cur.style.borderRadius = '3px';
+      ring.style.width = '54px'; ring.style.height = '54px';
+      ring.style.borderColor = 'rgba(225,41,29,.5)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cur.style.width = '10px'; cur.style.height = '10px';
+      cur.style.background = P.orange; cur.style.borderRadius = '50%';
+      ring.style.width = '36px'; ring.style.height = '36px';
+      ring.style.borderColor = 'rgba(239,145,21,.45)';
+    });
+  });
+ 
+ 
+  /* ─────────────────────────────────
+     HERO TITLE FADE-IN
+     Shortly after the page loads, add the "revealed" class to the
+     "Jinks Tattoos" title, which triggers its CSS fade-in animation.
+     setTimeout with 120ms gives the browser a moment to finish layout
+     before starting the animation.
+  ───────────────────────────────── */
+  setTimeout(() => document.getElementById('heroTitle').classList.add('revealed'), 120);
+ 
+ 
+  /* ─────────────────────────────────
+     HERO PARALLAX
+     As the user scrolls down, slightly shift the hero background image
+     downward so it feels like it's moving slower than the foreground
+     (a classic "parallax" effect).
+ 
+     "requestAnimationFrame" asks the browser to run code on the next
+     frame paint — much smoother than reacting directly to every scroll
+     event. The "ticking" flag prevents multiple frames from queuing up.
+  ───────────────────────────────── */
+  const heroBg = document.getElementById('heroBg');
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        /* Math.min(..., 1) caps the effect so it stops past one full screen */
+        heroBg.style.transform = `translateY(${Math.min(window.scrollY/window.innerHeight,1)*8}%)`;
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+ 
+ 
+  /* ─────────────────────────────────
+     MARQUEE — build items via JS
+     The marquee strip below the hero starts EMPTY in the HTML. This
+     block fills it with items and duplicates them so the scroll loops
+     seamlessly (the CSS animation moves it -50% left, landing back
+     where it started visually).
+  ───────────────────────────────── */
+  (function() {
+    const items = [
+      'Jinks Tattoos', 'Garden of Ink', 'Ogden, Utah',
+      'Custom Tattoos', 'Flash Designs', 'Art Prints',
+      'Currently Accepting Clients', '@j.lnks',
+    ];
+    const inner = document.getElementById('marqueeInner');
+ 
+    /* Build an HTML string by looping through the items TWICE (so when
+       the CSS slides everything -50% left, the second copy seamlessly
+       takes the first copy's place). */
+    let html = '';
+    [0,1].forEach(() => {
+      items.forEach(text => {
+        html += `<span class="marquee-item">${text}<span class="marquee-dot"></span></span>`;
+      });
+    });
+    inner.innerHTML = html;
+  })();
+ 
+ 
+  /* ─────────────────────────────────
+     HERO CANVAS — floating ink-blob shapes
+     Draws animated organic shapes (blobs, rings, diamonds, etc.) onto
+     the <canvas id="hero-canvas"> element. They drift slowly across the
+     hero area, rotating and fading in/out, creating a painterly feel.
+ 
+     This is the most complex JS block — don't worry if it's confusing.
+     High-level: we create ~26 "shape" objects, each with position/
+     velocity/rotation, and on every frame we clear the canvas and
+     re-draw all of them in their updated positions.
+  ───────────────────────────────── */
+  (function() {
+    const canvas = document.getElementById('hero-canvas');
+    const ctx    = canvas.getContext('2d');  /* "2d" drawing context = the paintbrush */
+    let W, H, shapes;
+ 
+    /* Size the canvas to match its on-screen size */
+    function resize() {
+      W = canvas.width  = canvas.offsetWidth;
+      H = canvas.height = canvas.offsetHeight;
+    }
+ 
+    /* Create one shape object. Each shape has its own random position,
+       size, rotation speed, color, etc. */
+    function makeShape(i) {
+      const types  = ['blob','ring','diamond','rect','arc','cross','half'];
+      const colors = [P.red, P.navy, P.orange, P.cream, P.navy, P.orange, P.red, P.cream];
+ 
+      const s = {
+        type:  types[i % types.length],      /* "i % types.length" cycles through the types array */
+        color: colors[i % colors.length],
+        x:0, y:0, r:0, w:0, h:0,
+        angle:0, da:0, dx:0, dy:0,           /* da/dx/dy = change in angle/x/y per frame */
+        opacity:0, targetOp:0, sw:1,
+        pts: [],                             /* control points for blob shape */
+ 
+        /* Randomize everything about this shape */
+        reset() {
+          this.x  = Math.random() * W;
+          this.y  = Math.random() * H;
+          this.r  = 70 + Math.random() * 230;
+          this.w  = 80 + Math.random() * 200;
+          this.h  = 50 + Math.random() * 130;
+          this.angle = Math.random() * Math.PI * 2;
+          this.da = (Math.random() - 0.5) * 0.0035;   /* rotation speed, positive or negative */
+          this.dx = (Math.random() - 0.5) * 0.3;
+          this.dy = (Math.random() - 0.5) * 0.2;
+          this.sw = 0.5 + Math.random() * 1.5;
+          this.targetOp = 0.05 + Math.random() * 0.2;
+          this.opacity  = 0;
+ 
+          /* For blob shapes: generate 6 random points around a circle */
+          this.pts = Array.from({length: 6}, (_, j) => {
+            const a = (j / 6) * Math.PI * 2;
+            const jitter = 0.55 + Math.random() * 0.9;
+            return {
+              x: Math.cos(a) * this.r * jitter,
+              y: Math.sin(a) * this.r * jitter,
+            };
+          });
+        },
+ 
+        /* Called once per frame to move and fade the shape */
+        update() {
+          this.x += this.dx; this.y += this.dy;
+          this.angle += this.da;
+          /* Smoothly ease the current opacity toward the target */
+          this.opacity += (this.targetOp - this.opacity) * 0.014;
+          /* If the shape drifts off-screen, wrap it around to the other side */
+          if (this.x < -350) this.x = W+200;
+          if (this.x > W+350) this.x = -200;
+          if (this.y < -350) this.y = H+200;
+          if (this.y > H+350) this.y = -200;
+        },
+ 
+        /* Called once per frame to draw the shape on the canvas */
+        draw(ctx) {
+          ctx.save();  /* Save current canvas state so we can restore after transforming */
+          ctx.globalAlpha = this.opacity;
+          ctx.strokeStyle = this.color;
+          ctx.fillStyle   = this.color;
+          ctx.lineWidth   = this.sw;
+          ctx.translate(this.x, this.y);  /* Move origin to shape position */
+          ctx.rotate(this.angle);         /* Rotate the canvas so next draw is rotated */
+ 
+          /* Draw a different shape depending on this.type */
+          switch(this.type) {
+ 
+            case 'blob': {
+              /* Smooth closed bezier curve through the random points */
+              const p = this.pts;
+              const n = p.length;
+              ctx.beginPath();
+              ctx.moveTo((p[0].x+p[n-1].x)/2, (p[0].y+p[n-1].y)/2);
+              for (let j = 0; j < n; j++) {
+                const curr = p[j], next = p[(j+1)%n];
+                ctx.quadraticCurveTo(curr.x, curr.y, (curr.x+next.x)/2, (curr.y+next.y)/2);
+              }
+              ctx.closePath();
+              ctx.globalAlpha = this.opacity * 0.15;
+              ctx.fill();
+              ctx.globalAlpha = this.opacity;
+              ctx.stroke();
+              break;
+            }
+ 
+            case 'ring':
+              /* Double concentric circles */
+              ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2); ctx.stroke();
+              ctx.globalAlpha = this.opacity * 0.5;
+              ctx.beginPath(); ctx.arc(0,0,this.r*.65,0,Math.PI*2); ctx.stroke();
+              break;
+ 
+            case 'diamond': {
+              const r = this.r * 0.75;
+              ctx.beginPath();
+              ctx.moveTo(0,-r); ctx.lineTo(r*.55,0); ctx.lineTo(0,r); ctx.lineTo(-r*.55,0);
+              ctx.closePath();
+              ctx.globalAlpha = this.opacity * 0.18;
+              ctx.fill();
+              ctx.globalAlpha = this.opacity;
+              ctx.stroke();
+              break;
+            }
+ 
+            case 'rect':
+              ctx.globalAlpha = this.opacity * 0.12;
+              ctx.fillRect(-this.w/2,-this.h/2,this.w,this.h);
+              ctx.globalAlpha = this.opacity;
+              ctx.strokeRect(-this.w/2,-this.h/2,this.w,this.h);
+              break;
+ 
+            case 'arc':
+              /* A partial circle arc */
+              ctx.beginPath();
+              ctx.arc(0,0,this.r,this.angle,this.angle+Math.PI*1.2);
+              ctx.stroke();
+              break;
+ 
+            case 'cross': {
+              /* A plus-sign shape */
+              const arm = this.r * 0.45;
+              ctx.beginPath();
+              ctx.moveTo(-arm,0); ctx.lineTo(arm,0);
+              ctx.moveTo(0,-arm); ctx.lineTo(0,arm);
+              ctx.stroke();
+              break;
+            }
+ 
+            case 'half':
+              /* Half-moon shape */
+              ctx.beginPath();
+              ctx.arc(0,0,this.r,0,Math.PI);
+              ctx.globalAlpha = this.opacity * 0.12;
+              ctx.fill();
+              ctx.globalAlpha = this.opacity;
+              ctx.stroke();
+              break;
+          }
+          ctx.restore();  /* Undo the translate/rotate so the next shape starts fresh */
+        }
+      };
+      s.reset();
+      return s;
+    }
+ 
+    /* Initial setup: size the canvas and create 26 shapes */
+    function init() {
+      resize();
+      shapes = Array.from({length:26}, (_,i) => makeShape(i));
+    }
+ 
+    /* The main animation loop: clear the canvas, update + draw each shape,
+       then schedule another frame. requestAnimationFrame hands off to the
+       browser so it runs ~60 times per second smoothly. */
+    let animId;
+    function loop() {
+      ctx.clearRect(0,0,W,H);
+      shapes.forEach(s => { s.update(); s.draw(ctx); });
+      animId = requestAnimationFrame(loop);
+    }
+ 
+    /* IntersectionObserver watches the hero element — when it's visible
+       on screen, start animating; when it scrolls out of view, stop
+       (to save battery/CPU). */
+    new IntersectionObserver(entries => {
+      entries[0].isIntersecting ? loop() : cancelAnimationFrame(animId);
+    }).observe(document.getElementById('hero'));
+ 
+    init();
+ 
+    /* Re-size and re-randomize if the window resizes */
+    window.addEventListener('resize', () => { resize(); shapes.forEach(s => s.reset()); });
+  })();
+ 
+ 
+  /* ─────────────────────────────────
+     AMBIENT SECTION CANVASES
+     For each homepage section (bio, catalog, policies, reviews), create
+     a background <canvas> filled with 9 big blobby shapes that bleed
+     from the edges. Adds visual texture behind the content.
+ 
+     Unlike the hero canvas (which is animated), these are drawn ONCE
+     when the section scrolls into view. Simpler and cheaper.
+  ───────────────────────────────── */
+  (function() {
+    const wraps = document.querySelectorAll('.section-wrap');
+ 
+    /* Color palettes for each section, in order. Each section gets a set
+       of accent colors that contrast with its background.
+ 
+       Section order on index.html:
+         0 = Section 1 (Bio)      — RED background
+         1 = Section 2 (Catalog)  — DARK background
+         2 = Section 3 (Policies) — RED background
+         3 = Section 4 (Reviews)  — DARK background
+ 
+       UPDATED: All palettes now use only dark colors (black + navy)
+       so the ambient blob shapes DARKEN their section instead of
+       lightening it. The previous cream/orange colors in the bio and
+       policies palettes were drawing pale "cloud" shapes on top of
+       the red — visible as light geometric blobs.
+ 
+       For each color, "fill" = fill opacity and "sk" = stroke opacity. */
+    const sectionPalettes = [
+      /* bio (RED bg) — dark shadow shapes only */
+      [{ col:P.black, fill:.06, sk:.10 }, { col:P.navy, fill:.05, sk:.08 }, { col:P.black, fill:.05, sk:.09 }, { col:P.navy, fill:.04, sk:.07 }],
+      /* catalog (DARK bg) — even subtler darks */
+      [{ col:P.black, fill:.05, sk:.08 }, { col:P.navy, fill:.04, sk:.07 }, { col:P.black, fill:.04, sk:.07 }, { col:P.navy, fill:.03, sk:.06 }],
+      /* policies (RED bg) — dark shadow shapes only */
+      [{ col:P.black, fill:.06, sk:.10 }, { col:P.navy, fill:.05, sk:.08 }, { col:P.black, fill:.05, sk:.09 }, { col:P.navy, fill:.04, sk:.07 }],
+      /* reviews (DARK bg) — even subtler darks */
+      [{ col:P.black, fill:.05, sk:.08 }, { col:P.navy, fill:.04, sk:.07 }, { col:P.black, fill:.04, sk:.07 }, { col:P.navy, fill:.03, sk:.06 }],
+    ];
+ 
+    /* For each section-wrap found on the page, set up its background canvas */
+    wraps.forEach((wrap, wi) => {
+      const c = document.createElement('canvas');
+      c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+      wrap.insertBefore(c, wrap.firstChild);
+ 
+      /* Draw only once when the section first becomes visible */
+      let drawn = false;
+      new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !drawn) { drawn = true; draw(); }
+      }).observe(wrap);
+ 
+      function draw() {
+        c.width  = wrap.offsetWidth;
+        c.height = wrap.offsetHeight;
+        const W = c.width, H = c.height;
+        const cx = c.getContext('2d');
+        const pal = sectionPalettes[wi % sectionPalettes.length];
+ 
+        /* Deterministic pseudo-random number generator.
+           Using a seed means shapes land in the SAME places every time
+           the page loads, instead of jumping around on refresh. */
+        let s = (wi + 7) * 6271;
+        const rnd = () => { s=(s*16807)%2147483647; return (s-1)/2147483646; };
+ 
+        /* Draw 9 big ambient shapes per section */
+        for (let i = 0; i < 9; i++) {
+          const p    = pal[i % pal.length];
+          const r    = 120 + rnd() * 340;  /* very large radius */
+          const x    = rnd() * W;
+          const y    = rnd() * H;
+          const type = i % 4;              /* 4 possible shape types */
+          const rot  = rnd() * Math.PI * 2;
+ 
+          cx.save();
+          cx.translate(x, y);
+          cx.rotate(rot);
+          cx.strokeStyle = p.col;
+          cx.fillStyle   = p.col;
+          cx.lineWidth   = 1;
+ 
+          if (type === 0) {
+            /* Blob shape via bezier curves */
+            const pts = Array.from({length:6}, (_,j) => {
+              const a = (j/6)*Math.PI*2;
+              const jit = 0.5 + rnd()*0.95;
+              return { x:Math.cos(a)*r*jit, y:Math.sin(a)*r*jit };
+            });
+            const n = pts.length;
+            cx.beginPath();
+            cx.moveTo((pts[0].x+pts[n-1].x)/2, (pts[0].y+pts[n-1].y)/2);
+            for (let j=0;j<n;j++) {
+              const curr=pts[j], next=pts[(j+1)%n];
+              cx.quadraticCurveTo(curr.x,curr.y,(curr.x+next.x)/2,(curr.y+next.y)/2);
+            }
+            cx.closePath();
+            cx.globalAlpha = p.fill;
+            cx.fill();
+            cx.globalAlpha = p.sk;
+            cx.stroke();
+ 
+          } else if (type === 1) {
+            /* Filled circle (ring) */
+            cx.globalAlpha = p.fill * 0.7;
+            cx.beginPath(); cx.arc(0,0,r,0,Math.PI*2); cx.fill();
+            cx.globalAlpha = p.sk;
+            cx.beginPath(); cx.arc(0,0,r,0,Math.PI*2); cx.stroke();
+ 
+          } else if (type === 2) {
+            /* Filled diamond */
+            cx.beginPath();
+            cx.moveTo(0,-r); cx.lineTo(r*.6,0); cx.lineTo(0,r); cx.lineTo(-r*.6,0);
+            cx.closePath();
+            cx.globalAlpha = p.fill;
+            cx.fill();
+            cx.globalAlpha = p.sk;
+            cx.stroke();
+ 
+          } else {
+            /* Filled rectangle */
+            const rw=180+rnd()*360, rh=100+rnd()*240;
+            cx.globalAlpha = p.fill * 0.7;
+            cx.fillRect(-rw/2,-rh/2,rw,rh);
+            cx.globalAlpha = p.sk * 0.7;
+            cx.strokeRect(-rw/2,-rh/2,rw,rh);
+          }
+          cx.restore();
+        }
+      }
+    });
+  })();
+ 
+ 
+  /* ─────────────────────────────────
+     NAV SCROLL EFFECT
+     When the user scrolls past 60px from the top, add the "scrolled"
+     class to the nav. The CSS uses this to add a dark blurred
+     background so the nav stays legible over any section.
+  ───────────────────────────────── */
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 60));
+ 
+ 
+  /* ─────────────────────────────────
+     MOBILE NAV (HAMBURGER MENU)
+     When the hamburger button is clicked on mobile, toggle the "open"
+     class on the nav links to show/hide the dropdown menu. Also animate
+     the three hamburger lines into an "X" when open, and back to three
+     lines when closed.
+  ───────────────────────────────── */
+  const toggle   = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  toggle.addEventListener('click', () => {
+    const open = navLinks.classList.toggle('open');  /* .toggle() returns true if the class is now present */
+    const sp = toggle.querySelectorAll('span');
+    /* Top line: rotate 45° and shift to form top half of the X */
+    sp[0].style.transform = open ? 'rotate(45deg) translate(4px,4px)'   : '';
+    /* Middle line: fade out */
+    sp[1].style.opacity   = open ? '0' : '1';
+    /* Bottom line: rotate -45° and shift to form bottom half of the X */
+    sp[2].style.transform = open ? 'rotate(-45deg) translate(4px,-4px)' : '';
+  });
+ 
+ 
+  /* ─────────────────────────────────
+     SCROLL REVEAL ANIMATIONS (enhanced)
+     Same IntersectionObserver as before — reveals .reveal elements when
+     they scroll into view. The reveal *style* (slide, scale, blur) is
+     decided entirely by which extra classes the element has in its HTML
+     (.reveal-left, .reveal-right, .reveal-scale, .reveal-blur, etc.).
+  ───────────────────────────────── */
+  const revObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        revObs.unobserve(e.target);  /* Stop watching this element — it's done */
+      }
+    });
+  }, { threshold: 0.08 });  /* Fire when 8% of the element is visible */
+ 
+  /* Watch every element with class="reveal" or class="red-rule" */
+  document.querySelectorAll('.reveal, .red-rule').forEach(el => revObs.observe(el));
+ 
+ 
+  /* ─────────────────────────────────
+     POLICY CARDS — collapsible accordion
+     Each .policy-card has a <button class="policy-toggle"> header.
+     Clicking it toggles the "open" class on the card, which the CSS
+     uses to:
+       • expand the body via grid-template-rows: 0fr → 1fr animation
+       • rotate the "+" icon 135° into an "×"
+       • highlight the card border in orange
+     We also flip the aria-expanded attribute for screen readers.
+  ───────────────────────────────── */
+  document.querySelectorAll('.policy-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.policy-card');
+      const open = card.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  });
+ 
+ 
+  /* ─────────────────────────────────
+     PARALLAX SCROLL
+     Any element with a data-parallax attribute moves vertically as the
+     user scrolls. The number is its "speed":
+       0.2  = drifts 20% as fast as scrolling (subtle)
+       0.5  = drifts 50% as fast (more dramatic)
+       -0.15 = drifts in the OPPOSITE direction (cool for heroes)
+ 
+     We only update elements currently in view (via IntersectionObserver)
+     and use requestAnimationFrame to coalesce updates to one per frame.
+     A CSS variable --parallax-strength is read so mobile can dampen the
+     effect to 40% strength (set in the responsive section of style.css).
+  ───────────────────────────────── */
+  (function() {
+    const items = Array.from(document.querySelectorAll('[data-parallax]'));
+    if (!items.length) return;
+ 
+    /* Track which elements are currently visible so we don't waste cycles
+       updating elements scrolled far off-screen */
+    const visible = new Set();
+    const visObs = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) visible.add(en.target);
+        else visible.delete(en.target);
+      });
+    }, { rootMargin: '200px' });   /* start a bit before they enter view */
+    items.forEach(el => visObs.observe(el));
+ 
+    /* Read the CSS-set strength multiplier (1 on desktop, 0.4 on mobile) */
+    function getStrength() {
+      const v = getComputedStyle(document.documentElement)
+                .getPropertyValue('--parallax-strength');
+      return parseFloat(v) || 1;
+    }
+    let strength = getStrength();
+    window.addEventListener('resize', () => { strength = getStrength(); });
+ 
+    /* Respect reduced-motion — if the user has it on, skip parallax entirely */
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+ 
+    let pTicking = false;
+    function update() {
+      const winH = window.innerHeight;
+      visible.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        /* "progress" = how far the element has moved through the viewport.
+            -1 = just entered from below, 0 = centered, 1 = leaving from top */
+        const progress = ((rect.top + rect.height/2) - winH/2) / winH;
+        const speed = parseFloat(el.dataset.parallax) || 0;
+        const offset = -progress * speed * 100 * strength;
+        el.style.transform = `translateY(${offset}px)`;
+      });
+      pTicking = false;
+    }
+ 
+    window.addEventListener('scroll', () => {
+      if (!pTicking) {
+        requestAnimationFrame(update);
+        pTicking = true;
+      }
+    }, { passive: true });
+ 
+    /* Run once on load so anything visible is positioned correctly before
+       the first scroll */
+    update();
+  })();
+ 
+ 
+  /* ─────────────────────────────────
+     MARQUEE SPEED BOOST ON SCROLL
+     When the user scrolls, briefly speed up the marquee. The CSS handles
+     the actual transition via the .scrolling class — we just toggle it
+     and clear it after a moment of scroll inactivity.
+  ───────────────────────────────── */
+  (function() {
+    const inner = document.getElementById('marqueeInner');
+    if (!inner) return;
+    let timer;
+    window.addEventListener('scroll', () => {
+      inner.classList.add('scrolling');
+      clearTimeout(timer);
+      timer = setTimeout(() => inner.classList.remove('scrolling'), 400);
+    }, { passive: true });
+  })();
+
+
+  /* ─────────────────────────────────
+     REVIEW SYSTEM CONFIGURATION
+     Fill in these two constants after deploying your Cloudflare Worker
+     and pushing the site to GitHub.
+  ───────────────────────────────── */
+  const WORKER_URL      = 'https://YOUR-WORKER.YOUR-NAME.workers.dev';
+  const REVIEWS_JSON_URL = 'https://raw.githubusercontent.com/YOUR-GITHUB-OWNER/YOUR-REPO/main/reviews.json';
+
+
+  /* ─────────────────────────────────
+     DYNAMIC REVIEW LOADER
+     Fetches approved reviews from reviews.json (served via GitHub's raw
+     CDN) and renders them into #reviews-dynamic using the same card
+     markup as the static review cards above.
+
+     Cache-bust with ?t=Date.now() so browsers don't serve a stale
+     cached copy on repeat visits. Note: there is still a ~5-minute
+     propagation lag after the GitHub Action commits new reviews —
+     the cache-bust only prevents the *browser* cache from hiding them.
+  ───────────────────────────────── */
+  (function() {
+    const container = document.getElementById('reviews-dynamic');
+    if (!container) return;
+
+    fetch(REVIEWS_JSON_URL + '?t=' + Date.now())
+      .then(function(res) {
+        if (!res.ok) throw new Error('fetch failed');
+        return res.json();
+      })
+      .then(function(data) {
+        var reviews = (data && Array.isArray(data.reviews)) ? data.reviews : [];
+        if (reviews.length === 0) {
+          var empty = document.createElement('p');
+          empty.className = 'reviews-empty';
+          empty.textContent = 'No submitted reviews yet — be the first.';
+          container.appendChild(empty);
+          return;
+        }
+
+        var grid = document.createElement('div');
+        grid.className = 'reviews-grid';
+        grid.style.marginTop = '2rem';
+
+        reviews.forEach(function(r, i) {
+          var card = document.createElement('div');
+          card.className = 'review-card reveal';
+          if (i > 0) card.style.transitionDelay = (i * 0.1) + 's';
+
+          /* Stars */
+          var stars = document.createElement('div');
+          stars.className = 'stars';
+          var rating = Math.max(1, Math.min(5, parseInt(r.rating, 10) || 5));
+          for (var s = 0; s < 5; s++) {
+            var star = document.createElement('span');
+            star.className = 'star';
+            star.textContent = '★';
+            star.style.opacity = s < rating ? '1' : '0.18';
+            stars.appendChild(star);
+          }
+          card.appendChild(stars);
+
+          /* Review body — textContent only, never innerHTML (XSS safe) */
+          var body = document.createElement('p');
+          body.className = 'review-text';
+          body.textContent = '“' + r.body + '”';
+          card.appendChild(body);
+
+          /* Author */
+          var author = document.createElement('p');
+          author.className = 'review-author';
+          author.textContent = r.name;
+          card.appendChild(author);
+
+          /* Date */
+          if (r.date) {
+            var dateEl = document.createElement('p');
+            dateEl.className = 'review-platform';
+            dateEl.textContent = r.date;
+            card.appendChild(dateEl);
+          }
+
+          grid.appendChild(card);
+        });
+
+        container.appendChild(grid);
+
+        /* Kick the reveal observer over the new cards */
+        grid.querySelectorAll('.reveal').forEach(function(el) {
+          revObs.observe(el);
+        });
+      })
+      .catch(function() {
+        /* Silent fail — static cards above still show */
+      });
+  })();
+
+
+  /* ─────────────────────────────────
+     REVIEW FORM — client-side validation + submission
+     Validates input, stamps the load timestamp, then POSTs JSON to
+     the Cloudflare Worker. The Worker handles honeypot + timing +
+     rate limiting + GitHub commit. No GitHub token ever touches here.
+  ───────────────────────────────── */
+  (function() {
+    /* Stamp the page-load time so the Worker can check submission speed */
+    var loadedAt = Date.now();
+    var loadedAtField = document.getElementById('loadedAt');
+    if (loadedAtField) loadedAtField.value = loadedAt;
+
+    var form    = document.getElementById('review-form');
+    var status  = document.getElementById('review-form-status');
+    var btn     = form ? form.querySelector('.review-submit-btn') : null;
+    if (!form || !btn) return;
+
+    function showFieldError(id, show) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('visible', show);
+    }
+    function markField(inputId, hasError) {
+      var el = document.getElementById(inputId);
+      if (el) el.classList.toggle('input-error', hasError);
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      /* Clear previous errors */
+      ['reviewer-name', 'review-body'].forEach(function(id) {
+        markField(id, false);
+      });
+      showFieldError('name-error', false);
+      showFieldError('rating-error', false);
+      showFieldError('body-error', false);
+      status.className = '';
+      status.textContent = '';
+
+      var name   = (form.querySelector('#reviewer-name').value || '').trim();
+      var body   = (form.querySelector('#review-body').value || '').trim();
+      var ratingInput = form.querySelector('input[name="rating"]:checked');
+      var rating = ratingInput ? parseInt(ratingInput.value, 10) : 0;
+      var honeypot = (form.querySelector('input[name="website"]') || {}).value || '';
+
+      /* Client-side validation */
+      var valid = true;
+      if (!name || name.length > 80) {
+        markField('reviewer-name', true);
+        showFieldError('name-error', true);
+        valid = false;
+      }
+      if (!rating || rating < 1 || rating > 5) {
+        showFieldError('rating-error', true);
+        valid = false;
+      }
+      if (!body || body.length < 10 || body.length > 800) {
+        markField('review-body', true);
+        showFieldError('body-error', true);
+        valid = false;
+      }
+      if (!valid) return;
+
+      /* Disable button + show spinner */
+      btn.disabled = true;
+      btn.classList.add('loading');
+
+      fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name,
+          rating: rating,
+          body: body,
+          loadedAt: loadedAt,
+          website: honeypot
+        })
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error(res.status);
+        /* Success: hide form, show thank-you */
+        form.style.display = 'none';
+        status.className = 'success';
+        status.textContent = 'Thank you! Your review has been submitted and will appear once approved.';
+      })
+      .catch(function() {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        status.className = 'error';
+        status.textContent = 'Something went wrong — please try again in a moment.';
+      });
+    });
+  })();
+  </script>
+ 
+</body>
+</html>
+ 

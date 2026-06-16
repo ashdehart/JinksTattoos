@@ -1,0 +1,16 @@
+name = "jinks-review-worker"
+main = "review-worker.js"
+compatibility_date = "2025-06-01"
+
+# KV namespace for rate limiting.
+# After running:  wrangler kv:namespace create RATE_LIMIT_KV
+# copy the returned `id` value here and remove the placeholder.
+kv_namespaces = [
+  { binding = "RATE_LIMIT_KV", id = "REPLACE_WITH_ID_FROM_wrangler_kv_namespace_create" }
+]
+
+# Secrets are set via:
+#   wrangler secret put GITHUB_TOKEN
+#   wrangler secret put GITHUB_OWNER
+#   wrangler secret put GITHUB_REPO
+# Do NOT hardcode them here.

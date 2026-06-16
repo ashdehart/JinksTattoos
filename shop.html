@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════════════
+     JINKS TATTOOS — shop.html (SHOP / PRINTS — COMING SOON)
+     ─────────────────────────────────────────────────────────────────
+     Placeholder page for the print shop. Shows a "Coming Soon"
+     message with the same grungy underground aesthetic as the rest
+     of the site. Replace this page once the shop is live.
+     ═══════════════════════════════════════════════════════════════════ -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop — Jinks Tattoos</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* Dark grungy background */
+    body { background: #1a1816; color: #E8D9B3; }
+
+    /* Shop wrapper — full grunge newspaper texture */
+    .shop-wrap {
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+      padding-top: 8rem;
+      background-color: #1a1816;
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E"),
+        radial-gradient(ellipse 120% 80% at 20% 90%, rgba(0,0,0,.4) 0%, transparent 70%),
+        radial-gradient(ellipse 100% 60% at 85% 15%, rgba(0,0,0,.35) 0%, transparent 65%),
+        radial-gradient(ellipse 80% 80% at 50% 50%, transparent 30%, rgba(0,0,0,.25) 100%);
+      background-blend-mode: overlay, soft-light, normal, normal, normal;
+    }
+
+    /* Diamond decoration — top right */
+    .shop-wrap::before {
+      content: '♦';
+      position: absolute;
+      top: 14%; right: 10%;
+      font-size: 8rem;
+      color: #E1291D;
+      opacity: .05;
+      transform: rotate(15deg);
+      pointer-events: none;
+      z-index: 0;
+      font-family: serif;
+    }
+
+    /* Diamond decoration — bottom left */
+    .shop-wrap::after {
+      content: '♦';
+      position: absolute;
+      bottom: 14%; left: 7%;
+      font-size: 5.5rem;
+      color: #E8D9B3;
+      opacity: .04;
+      transform: rotate(-10deg);
+      pointer-events: none;
+      z-index: 0;
+      font-family: serif;
+    }
+
+    /* Centered content container */
+    .shop-section {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 5rem 2rem 7rem;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* "Shop" eyebrow label */
+    .shop-eyebrow {
+      font-size: .62rem;
+      letter-spacing: .42em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 1.2rem;
+      color: #EF9115;
+    }
+
+    /* Big italic heading */
+    .shop-h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 6vw, 4.4rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.1;
+      color: #E8D9B3;
+      margin-bottom: 1.2rem;
+      transform: rotate(-.4deg);
+      display: inline-block;
+    }
+
+    /* Red accent line */
+    .shop-rule {
+      width: 56px;
+      height: 2px;
+      background: #E1291D;
+      margin-bottom: 2.6rem;
+    }
+
+    /* Pool ball decorative element */
+    .shop-ball {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 35%, rgba(255,255,255,.12) 0%, transparent 50%),
+        linear-gradient(to bottom,
+          #E1291D 0%, #E1291D 30%,
+          #E8D9B3 30%, #E8D9B3 70%,
+          #E1291D 70%, #E1291D 100%
+        );
+      opacity: .08;
+      margin-bottom: 2.5rem;
+      box-shadow: inset 0 0 20px rgba(0,0,0,.5),
+                  inset -8px -8px 25px rgba(0,0,0,.3),
+                  0 0 40px rgba(225,41,29,.08);
+      transform: rotate(-20deg);
+      flex-shrink: 0;
+    }
+
+    /* Description paragraph */
+    .shop-desc {
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      line-height: 1.8;
+      color: rgba(232,217,179,.65);
+      max-width: 520px;
+      margin-bottom: 2.8rem;
+    }
+
+    .shop-desc em {
+      font-style: italic;
+      color: #E8D9B3;
+    }
+
+    /* Dashed "Coming Soon" box */
+    .shop-placeholder {
+      width: 100%;
+      max-width: 480px;
+      padding: 3rem 2rem;
+      border: 1.5px dashed rgba(232,217,179,.15);
+      background: rgba(14,13,13,.45);
+      position: relative;
+      margin-bottom: 3rem;
+    }
+
+    /* "Coming Soon" tag on placeholder */
+    .shop-placeholder::before {
+      content: 'Coming Soon';
+      position: absolute;
+      top: -.7rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1816;
+      padding: 0 .9rem;
+      font-size: .6rem;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      color: #E1291D;
+      font-weight: 500;
+    }
+
+    /* Diamond brackets inside the placeholder */
+    .shop-placeholder::after {
+      content: '♦';
+      font-family: serif;
+      font-size: 2rem;
+      color: #EF9115;
+      opacity: .12;
+      display: block;
+      margin: .5rem 0;
+    }
+
+    .shop-placeholder p {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 1.05rem;
+      color: rgba(232,217,179,.4);
+    }
+
+    /* Instagram CTA link */
+    .shop-ig {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      font-size: .68rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(232,217,179,.5);
+      border: 1px solid rgba(232,217,179,.15);
+      padding: .5rem 1.1rem;
+      transition: color .25s, border-color .25s;
+      margin-bottom: 1rem;
+    }
+    .shop-ig:hover {
+      color: #EF9115;
+      border-color: #EF9115;
+    }
+
+    /* "Back to Home" link */
+    .shop-home {
+      font-size: .62rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(232,217,179,.35);
+      border-bottom: 1px solid rgba(232,217,179,.12);
+      padding-bottom: 3px;
+      transition: color .25s, border-color .25s;
+    }
+    .shop-home:hover {
+      color: #E1291D;
+      border-color: #E1291D;
+    }
+
+    /* Divider line with diamonds */
+    .shop-divider {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      margin: 2rem 0;
+      width: 100%;
+      max-width: 300px;
+    }
+    .shop-divider span {
+      flex: 1;
+      height: 1px;
+      background: rgba(232,217,179,.1);
+    }
+    .shop-divider em {
+      font-family: serif;
+      font-style: normal;
+      font-size: .9rem;
+      color: #E1291D;
+      opacity: .25;
+    }
+
+    /* Hide diamonds on mobile */
+    @media (max-width: 860px) {
+      .shop-wrap::before,
+      .shop-wrap::after { display: none; }
+      .shop-section { padding: 3rem 1.5rem 5rem; }
+      .shop-ball { width: 70px; height: 70px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom cursor -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- Film grain overlay -->
+  <div id="grain"></div>
+
+  <!-- NAV BAR -->
+  <nav id="nav">
+    <a href="index.html" class="nav-home-link">Home</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html#catalog">Catalog</a></li>
+      <li><a href="schedule.html" class="nav-book">Book Now</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- SHOP CONTENT -->
+  <div class="section-wrap shop-wrap">
+
+    <div class="shop-section">
+      <span class="shop-eyebrow">Shop</span>
+      <h1 class="shop-h1">Prints & Originals</h1>
+      <div class="shop-rule"></div>
+
+      <!-- Decorative pool ball -->
+      <div class="shop-ball"></div>
+
+      <p class="shop-desc">
+        Original art prints, flash sheets, and limited-edition pieces by
+        <em>Jinks</em> are on the way. The shop is currently being stocked
+        — check back soon or follow along on Instagram for first access
+        when pieces drop.
+      </p>
+
+      <!-- Coming Soon placeholder -->
+      <div class="shop-placeholder">
+        <p>Shop opening soon.</p>
+      </div>
+
+      <!-- Diamond divider -->
+      <div class="shop-divider">
+        <span></span>
+        <em>♦</em>
+        <span></span>
+      </div>
+
+      <!-- Instagram link -->
+      <a href="https://instagram.com/j.lnks" target="_blank" rel="noopener" class="shop-ig">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="2" width="20" height="20" rx="5"/>
+          <circle cx="12" cy="12" r="5"/>
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+        @j.lnks
+      </a>
+
+      <!-- Back to Home link -->
+      <a href="index.html" class="shop-home">← Back to Home</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">Jinks Tattoos</div>
+    <ul class="footer-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#catalog">Catalog</a></li>
+      <li><a href="schedule.html">Book</a></li>
+      <li><a href="https://www.instagram.com/j.lnks" target="_blank" rel="noopener">@j.lnks</a></li>
+    </ul>
+    <p class="footer-copy">© 2025 Jolie Lowder · Jinks Tattoos · Garden of Ink, Ogden UT</p>
+  </footer>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    const P = { red:'#E1291D', navy:'#07376A', orange:'#EF9115', cream:'#E8D9B3', black:'#0e0d0d' };
+
+    /* Custom cursor */
+    const cur  = document.getElementById('cursor');
+    const ring = document.getElementById('cursor-ring');
+    document.addEventListener('mousemove', e => {
+      cur.style.left = e.clientX+'px';  cur.style.top = e.clientY+'px';
+      ring.style.left = e.clientX+'px'; ring.style.top = e.clientY+'px';
+    });
+    document.querySelectorAll('a,button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cur.style.width = '20px'; cur.style.height = '20px';
+        cur.style.background = P.red; cur.style.borderRadius = '3px';
+        ring.style.width = '54px'; ring.style.height = '54px';
+        ring.style.borderColor = 'rgba(225,41,29,.5)';
+      });
+      el.addEventListener('mouseleave', () => {
+        cur.style.width = '10px'; cur.style.height = '10px';
+        cur.style.background = P.orange; cur.style.borderRadius = '50%';
+        ring.style.width = '36px'; ring.style.height = '36px';
+        ring.style.borderColor = 'rgba(239,145,21,.45)';
+      });
+    });
+
+    /* Nav scroll effect */
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 60));
+
+    /* Mobile nav */
+    const toggle   = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      const sp = toggle.querySelectorAll('span');
+      sp[0].style.transform = open ? 'rotate(45deg) translate(4px,4px)'   : '';
+      sp[1].style.opacity   = open ? '0' : '1';
+      sp[2].style.transform = open ? 'rotate(-45deg) translate(4px,-4px)' : '';
+    });
+
+    /* Ambient background canvas */
+    (function() {
+      const wrap = document.querySelector('.shop-wrap');
+      const c = document.createElement('canvas');
+      c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+      wrap.insertBefore(c, wrap.firstChild);
+
+      const pal = [
+        { col:P.navy,   fill:.06, sk:.1  },
+        { col:P.red,    fill:.05, sk:.09 },
+        { col:P.black,  fill:.04, sk:.08 },
+        { col:P.orange, fill:.05, sk:.09 },
+      ];
+
+      function draw() {
+        c.width  = wrap.offsetWidth;
+        c.height = wrap.offsetHeight;
+        const W = c.width, H = c.height;
+        const cx = c.getContext('2d');
+
+        let s = 77777;
+        const rnd = () => { s=(s*16807)%2147483647; return (s-1)/2147483646; };
+
+        for (let i = 0; i < 9; i++) {
+          const p    = pal[i % pal.length];
+          const r    = 120 + rnd() * 340;
+          const x    = rnd() * W;
+          const y    = rnd() * H;
+          const type = i % 4;
+          const rot  = rnd() * Math.PI * 2;
+
+          cx.save();
+          cx.translate(x, y);
+          cx.rotate(rot);
+          cx.strokeStyle = p.col;
+          cx.fillStyle   = p.col;
+          cx.lineWidth   = 1;
+
+          if (type === 0) {
+            const pts = Array.from({length:6}, (_,j) => {
+              const a = (j/6)*Math.PI*2;
+              const jit = 0.5 + rnd()*0.95;
+              return { x:Math.cos(a)*r*jit, y:Math.sin(a)*r*jit };
+            });
+            const n = pts.length;
+            cx.beginPath();
+            cx.moveTo((pts[0].x+pts[n-1].x)/2,(pts[0].y+pts[n-1].y)/2);
+            for (let j=0;j<n;j++) {
+              const curr=pts[j], next=pts[(j+1)%n];
+              cx.quadraticCurveTo(curr.x,curr.y,(curr.x+next.x)/2,(curr.y+next.y)/2);
+            }
+            cx.closePath();
+            cx.globalAlpha = p.fill; cx.fill();
+            cx.globalAlpha = p.sk;   cx.stroke();
+          } else if (type === 1) {
+            cx.globalAlpha = p.fill * 0.7;
+            cx.beginPath(); cx.arc(0,0,r,0,Math.PI*2); cx.fill();
+            cx.globalAlpha = p.sk;
+            cx.beginPath(); cx.arc(0,0,r,0,Math.PI*2); cx.stroke();
+          } else if (type === 2) {
+            cx.beginPath();
+            cx.moveTo(0,-r); cx.lineTo(r*.6,0); cx.lineTo(0,r); cx.lineTo(-r*.6,0);
+            cx.closePath();
+            cx.globalAlpha = p.fill; cx.fill();
+            cx.globalAlpha = p.sk;   cx.stroke();
+          } else {
+            const rw=180+rnd()*360, rh=100+rnd()*240;
+            cx.globalAlpha = p.fill * 0.7;
+            cx.fillRect(-rw/2,-rh/2,rw,rh);
+            cx.globalAlpha = p.sk * 0.7;
+            cx.strokeRect(-rw/2,-rh/2,rw,rh);
+          }
+          cx.restore();
+        }
+      }
+
+      draw();
+      window.addEventListener('resize', draw);
+    })();
+  </script>
+</body>
+</html>

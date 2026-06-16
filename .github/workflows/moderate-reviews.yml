@@ -1,0 +1,46 @@
+name: Moderate Reviews
+
+# Only triggers when a new file lands in reviews/pending/.
+# The Action's own commit ([skip ci]) moves files OUT of pending/, so
+# it will not match this path filter — no infinite loop.
+on:
+  push:
+    paths:
+      - "reviews/pending/**"
+
+# The built-in GITHUB_TOKEN is used for git push.
+# It is NOT the same as the fine-grained PAT stored in the Worker secret.
+permissions:
+  contents: write
+
+jobs:
+  moderate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          # fetch-depth: 0 gives us the full history so git diff HEAD^ HEAD works
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run moderation and regenerate reviews.json
+        run: node .github/scripts/moderate.js
+
+      - name: Commit processed reviews
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Only commit if there are staged changes (the moderation script
+          # calls `git add -A`, so this will be non-empty when reviews moved)
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "chore: process reviews [skip ci]"
+            git push
+          fi

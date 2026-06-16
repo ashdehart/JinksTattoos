@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════════════
+     JINKS TATTOOS — confirmation.html (POST-SUBMIT CONFIRMATION PAGE)
+     ─────────────────────────────────────────────────────────────────
+     Simple confirmation page shown after a client completes booking.
+     No form, no iframe — just heading + confirmation message.
+     Same nav, footer, grunge background, and ambient canvas as the
+     other booking pages so it feels like part of the same flow.
+     ═══════════════════════════════════════════════════════════════════ -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Received — Jinks Tattoos</title>
+  <!-- Shared site stylesheet (nav, footer, cursor, grain, etc.) -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ─────────────────────────────────────────────────────────
+       PAGE-SPECIFIC STYLES
+  ───────────────────────────────────────────────────────────── -->
+   <style>
+    /* Dark grungy background for the confirmation page */
+    body { background: #1a1816; color: #E8D9B3; }
+
+    /* Content wrapper — full grunge newspaper texture */
+    .schedule-wrap {
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+      padding-top: 8rem;
+      background-color: #1a1816;
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E"),
+        radial-gradient(ellipse 120% 80% at 20% 90%, rgba(0,0,0,.4) 0%, transparent 70%),
+        radial-gradient(ellipse 100% 60% at 85% 15%, rgba(0,0,0,.35) 0%, transparent 65%),
+        radial-gradient(ellipse 80% 80% at 50% 50%, transparent 30%, rgba(0,0,0,.25) 100%);
+      background-blend-mode: overlay, soft-light, normal, normal, normal;
+    }
+
+    /* Diamond decoration — top right */
+    .schedule-wrap::before {
+      content: '♦';
+      position: absolute;
+      top: 18%; right: 8%;
+      font-size: 7rem;
+      color: #E1291D;
+      opacity: .05;
+      transform: rotate(-12deg);
+      pointer-events: none;
+      z-index: 0;
+      font-family: serif;
+    }
+
+    /* Diamond decoration — bottom left */
+    .schedule-wrap::after {
+      content: '♦';
+      position: absolute;
+      bottom: 12%; left: 6%;
+      font-size: 5rem;
+      color: #E8D9B3;
+      opacity: .04;
+      transform: rotate(18deg);
+      pointer-events: none;
+      z-index: 0;
+      font-family: serif;
+    }
+
+    /* Centered content container */
+    .schedule-section {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 3rem 2rem 7rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* "Confirmation" eyebrow label */
+    .schedule-eyebrow {
+      font-size: .62rem;
+      letter-spacing: .42em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 1.2rem;
+      color: #E1291D;
+    }
+
+    /* Big italic heading */
+    .schedule-h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.2rem, 6vw, 4.2rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.1;
+      color: #E8D9B3;
+      margin-bottom: 1.2rem;
+      transform: rotate(-.4deg);
+      display: inline-block;
+    }
+
+    /* Red accent line */
+    .schedule-rule {
+      width: 56px;
+      height: 2px;
+      background: #E1291D;
+      margin-bottom: 2.4rem;
+    }
+
+    /* Confirmation message paragraph */
+    .schedule-desc {
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      line-height: 1.75;
+      color: rgba(232,217,179,.72);
+      max-width: 640px;
+      margin-bottom: 2.6rem;
+    }
+
+    /* "Back to home" link styled like a CTA button */
+    .confirm-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .95rem 2.5rem;
+      font-family: var(--sans);
+      font-size: .72rem;
+      font-weight: 400;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: #E8D9B3;
+      border: 1.5px solid rgba(232,217,179,.4);
+      transition: border-color .25s, gap .3s var(--ease);
+      cursor: none;
+    }
+    .confirm-cta:hover {
+      border-color: #E8D9B3;
+      gap: 1.2rem;
+    }
+
+    /* Hide diamonds on mobile */
+    @media (max-width: 860px) {
+      .schedule-wrap::before,
+      .schedule-wrap::after { display: none; }
+    }
+  </style>
+
+</head>
+<body>
+
+  <!-- Custom cursor (the dot and ring that follow the mouse) -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- Film grain overlay -->
+  <div id="grain"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       NAV BAR — same as the homepage
+       ═══════════════════════════════════════════════════════════════ -->
+  <nav id="nav">
+    <a href="index.html" class="nav-logo">Jinks</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="index.html#catalog">Catalog</a></li>
+      <li><a href="schedule.html" class="nav-book">Book Now</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       CONFIRMATION CONTENT
+       Heading + confirmation message + back-to-home link.
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="schedule-wrap">
+    <div class="schedule-section">
+      <span class="schedule-eyebrow">Confirmation</span>
+      <h1 class="schedule-h1">Request Received. Check Your Email!</h1>
+      <div class="schedule-rule"></div>
+
+      <p class="schedule-desc">
+        Your registration is completed. Be sure to check your email in the next few days.
+        Jolie will reach out to confirm your booking and arrange the deposit. If you do
+        not receive an email within 7 days, please check your spam and junk folders.
+      </p>
+
+      <a href="index.html" class="confirm-cta">
+        Back to Home
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M13 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       FOOTER — same as the homepage
+       ═══════════════════════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-logo">Jinks Tattoos</div>
+    <ul class="footer-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="index.html#catalog">Catalog</a></li>
+      <li><a href="schedule.html">Book</a></li>
+      <li><a href="https://www.instagram.com/j.lnks" target="_blank" rel="noopener">@j.lnks</a></li>
+    </ul>
+    <p class="footer-copy">© 2025 Jolie Lowder · Jinks Tattoos · Garden of Ink, Ogden UT</p>
+  </footer>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       JAVASCRIPT
+       Same subset as the other booking pages: cursor, nav scroll,
+       mobile menu, ambient canvas.
+       ═══════════════════════════════════════════════════════════════ -->
+  <script>
+    /* Brand colors as a JS object — used by the ambient canvas below */
+    const P = { red:'#E1291D', navy:'#07376A', orange:'#EF9115', cream:'#E8D9B3', black:'#0e0d0d' };
+
+
+    /* ─────────────────────────────────
+       CUSTOM CURSOR
+    ───────────────────────────────── */
+    const cur  = document.getElementById('cursor');
+    const ring = document.getElementById('cursor-ring');
+    document.addEventListener('mousemove', e => {
+      cur.style.left = e.clientX+'px';  cur.style.top = e.clientY+'px';
+      ring.style.left = e.clientX+'px'; ring.style.top = e.clientY+'px';
+    });
+    document.querySelectorAll('a,button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cur.style.width = '20px'; cur.style.height = '20px';
+        cur.style.background = P.red; cur.style.borderRadius = '3px';
+        ring.style.width = '54px'; ring.style.height = '54px';
+        ring.style.borderColor = 'rgba(225,41,29,.5)';
+      });
+      el.addEventListener('mouseleave', () => {
+        cur.style.width = '10px'; cur.style.height = '10px';
+        cur.style.background = P.orange; cur.style.borderRadius = '50%';
+        ring.style.width = '36px'; ring.style.height = '36px';
+        ring.style.borderColor = 'rgba(239,145,21,.45)';
+      });
+    });
+
+
+    /* ─────────────────────────────────
+       NAV SCROLL EFFECT
+    ───────────────────────────────── */
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 60));
+
+
+    /* ─────────────────────────────────
+       MOBILE NAV (HAMBURGER MENU)
+    ───────────────────────────────── */
+    const toggle   = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      const sp = toggle.querySelectorAll('span');
+      sp[0].style.transform = open ? 'rotate(45deg) translate(4px,4px)'   : '';
+      sp[1].style.opacity   = open ? '0' : '1';
+      sp[2].style.transform = open ? 'rotate(-45deg) translate(4px,-4px)' : '';
+    });
+
+
+    /* ─────────────────────────────────
+       AMBIENT BACKGROUND CANVAS
+    ───────────────────────────────── */
+    (function() {
+      const wrap = document.querySelector('.schedule-wrap');
+
+      const c = document.createElement('canvas');
+      c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+      wrap.insertBefore(c, wrap.firstChild);
+
+      const pal = [
+        { col:P.navy,   fill:.06, sk:.1  },
+        { col:P.red,    fill:.05, sk:.09 },
+        { col:P.black,  fill:.04, sk:.08 },
+        { col:P.orange, fill:.05, sk:.09 },
+      ];
+
+      function draw() {
+        c.width  = wrap.offsetWidth;
+        c.height = wrap.offsetHeight;
+        const W = c.width, H = c.height;
+        const cx = c.getContext('2d');
+
+        let s = 54321;
+        const rnd = () => { s=(s*16807)%2147483647; return (s-1)/2147483646; };
+
+        for (let i = 0; i < 9; i++) {
+          const p    = pal[i % pal.length];
+          const r    = 120 + rnd() * 340;
+          const x    = rnd() * W;
+          const y    = rnd() * H;
+          const type = i % 4;
+          const rot  = rnd() * Math.PI * 2;
+
+          cx.save();
+          cx.translate(x, y);
+          cx.rotate(rot);
+          cx.strokeStyle = p.col;
+          cx.fillStyle   = p.col;
+          cx.lineWidth   = 1;
+
+          if (type === 0) {
+            const pts = Array.from({length:6}, (_,j) => {
+              const a = (j/6)*Math.PI*2;
+              const jit = 0.5 + rnd()*0.95;
+              return { x:Math.cos(a)*r*jit, y:Math.sin(a)*r*jit };
+            });
+            const n = pts.length;
+            cx.beginPath();
+            cx.moveTo((pts[0].x+pts[n-1].x)/2,(pts[0].y+pts[n-1].y)/2);
+            for (let j=0;j<n;j++) {
+              const curr=pts[j], next=pts[(j+1)%n];
+              cx.quadraticCurveTo(curr.x,curr.y,(curr.x+next.x)/2,(curr.y+next.y)/2);
+            }
+            cx.closePath();
+            cx.globalAlpha = p.fill; cx.fill();
+            cx.globalAlpha = p.sk;   cx.stroke();
+
+          } else if (type === 1) {
+            cx.globalAlpha = p.fill * 0.7;
+            cx.beginPath(); cx.arc(0,0,r,0,Math.PI*2); cx.fill();
+            cx.globalAlpha = p.sk;
+            cx.beginPath(); cx.arc(0,0,r,0,Math.PI*2); cx.stroke();
+
+          } else if (type === 2) {
+            cx.beginPath();
+            cx.moveTo(0,-r); cx.lineTo(r*.6,0); cx.lineTo(0,r); cx.lineTo(-r*.6,0);
+            cx.closePath();
+            cx.globalAlpha = p.fill; cx.fill();
+            cx.globalAlpha = p.sk;   cx.stroke();
+
+          } else {
+            const rw=180+rnd()*360, rh=100+rnd()*240;
+            cx.globalAlpha = p.fill * 0.7;
+            cx.fillRect(-rw/2,-rh/2,rw,rh);
+            cx.globalAlpha = p.sk * 0.7;
+            cx.strokeRect(-rw/2,-rh/2,rw,rh);
+          }
+          cx.restore();
+        }
+      }
+
+      draw();
+      window.addEventListener('resize', draw);
+    })();
+  </script>
+</body>
+</html>
