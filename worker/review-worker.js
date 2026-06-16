@@ -34,9 +34,12 @@ const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in ms
 
 // Minimum elapsed ms since page load before accepting a submission
 const MIN_ELAPSED_MS = 3000;
+// Browser clocks can run slightly ahead of Cloudflare's servers.
+// Tolerate up to this many ms of skew before treating loadedAt as invalid.
+const CLOCK_SKEW_TOLERANCE_MS = 30000;
 
 // Workers AI model for pre-moderation
-const AI_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const AI_MODEL = '@cf/meta/llama-3.2-3b-instruct';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 export default {
@@ -71,8 +74,10 @@ export default {
 
     // ── Timing check ─────────────────────────────────────────────────────────
     // Reject submissions that arrive under 3 seconds after page load.
+    // CLOCK_SKEW_TOLERANCE_MS accounts for browser clocks running slightly ahead
+    // of Cloudflare's infrastructure (~10s observed; 30s tolerance for headroom).
     const elapsed = Date.now() - parseInt(loadedAt, 10);
-    if (!loadedAt || isNaN(elapsed) || elapsed < MIN_ELAPSED_MS) {
+    if (!loadedAt || isNaN(elapsed) || elapsed < MIN_ELAPSED_MS - CLOCK_SKEW_TOLERANCE_MS) {
       return jsonError(400, 'Bad request', origin);
     }
 
@@ -154,8 +159,22 @@ export default {
         ],
         max_tokens: 30,
       });
-      const text = (aiResponse?.response || '').trim();
-      const match = text.match(/\{[^}]*\}/);
+      // Normalize the response to a string — different Workers AI models return
+      // different shapes: { response: string }, { response: string[] } (token array),
+      // OpenAI-compat choices[], or a plain string.
+      let text = '';
+      if (typeof aiResponse === 'string') {
+        text = aiResponse;
+      } else if (typeof aiResponse?.response === 'string') {
+        text = aiResponse.response;
+      } else if (Array.isArray(aiResponse?.response)) {
+        text = aiResponse.response.join('');
+      } else if (typeof aiResponse?.choices?.[0]?.message?.content === 'string') {
+        text = aiResponse.choices[0].message.content;
+      } else if (aiResponse != null) {
+        text = JSON.stringify(aiResponse);
+      }
+      const match = text.trim().match(/\{[^}]*\}/);
       if (match) {
         const parsed = JSON.parse(match[0]);
         aiRejected = parsed.verdict === 'reject';
