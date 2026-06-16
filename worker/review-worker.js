@@ -11,6 +11,7 @@
 const ALLOWED_ORIGINS = [
   'https://jinkstattoos.shop',
   'https://jinksdevsite.neocities.org',
+  'http://127.0.0.1:5500', // Live Server local dev
 ];
 
 function corsHeaders(requestOrigin) {
