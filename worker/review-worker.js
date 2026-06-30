@@ -43,7 +43,7 @@ const AI_MODEL = '@cf/meta/llama-3.2-3b-instruct';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin') || '';
 
     // Handle CORS preflight
@@ -137,8 +137,7 @@ export default {
     const fileContent = btoa(JSON.stringify(reviewData, null, 2));
 
     // ── Workers AI pre-filter ─────────────────────────────────────────────────
-    // CRITICAL: any failure here (timeout, parse error, bad response, env.AI
-    // unavailable) must fall through silently — AI never gates a submission.
+    // Any failure falls through silently — AI never gates a submission.
     // Rejected reviews go to reviews/ai-rejected/ for manual audit; the
     // submitter always receives a 201 so they cannot probe the classifier.
     let aiRejected = false;
@@ -149,8 +148,9 @@ export default {
             role: 'system',
             content:
               'You are a content moderator for a tattoo studio review page. ' +
-              'Classify the review as genuine ("approve") or spam/abusive/nonsense ("reject"). ' +
-              'Reply with only valid JSON: {"verdict":"approve"} or {"verdict":"reject"}.',
+              'Approve the review unless it is clearly spam, gibberish, offensive, or automated — short and simple genuine reviews are perfectly acceptable. ' +
+              'Do NOT reject based on brevity or lack of detail. ' +
+              'Reply with only valid JSON: {"verdict":"approve"} or {"verdict":"reject","reason":"one sentence explanation"}.',
           },
           {
             role: 'user',
@@ -159,9 +159,6 @@ export default {
         ],
         max_tokens: 30,
       });
-      // Normalize the response to a string — different Workers AI models return
-      // different shapes: { response: string }, { response: string[] } (token array),
-      // OpenAI-compat choices[], or a plain string.
       let text = '';
       if (typeof aiResponse === 'string') {
         text = aiResponse;
@@ -178,33 +175,35 @@ export default {
       if (match) {
         const parsed = JSON.parse(match[0]);
         aiRejected = parsed.verdict === 'reject';
+        if (aiRejected) reviewData.aiRejectionReason = parsed.reason || 'no reason provided';
       }
     } catch (err) {
-      // AI unavailable or response unparseable — fall through to pending write
       console.error('AI pre-filter error (falling through to pending):', err?.message);
     }
 
     if (aiRejected) {
-      // Store for manual review; do not block the response on this write
-      fetch(
-        `https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/reviews/ai-rejected/${filename}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `token ${env.GITHUB_TOKEN}`,
-            'Content-Type': 'application/json',
-            'User-Agent': 'jinks-review-worker',
-          },
-          body: JSON.stringify({
-            message: `review: ai-rejected submission ${filename}`,
-            content: fileContent,
-          }),
-        }
-      ).then(r => {
-        if (!r.ok) console.error('GitHub ai-rejected write failed:', r.status);
-      }).catch(err => {
-        console.error('GitHub ai-rejected write error:', err?.message);
-      });
+      // ctx.waitUntil keeps the background write alive after the response is sent
+      ctx.waitUntil(
+        fetch(
+          `https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/reviews/ai-rejected/${filename}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Authorization': `token ${env.GITHUB_TOKEN}`,
+              'Content-Type': 'application/json',
+              'User-Agent': 'jinks-review-worker',
+            },
+            body: JSON.stringify({
+              message: `review: ai-rejected submission ${filename}`,
+              content: btoa(JSON.stringify(reviewData, null, 2)),
+            }),
+          }
+        ).then(r => {
+          if (!r.ok) console.error('GitHub ai-rejected write failed:', r.status);
+        }).catch(err => {
+          console.error('GitHub ai-rejected write error:', err?.message);
+        })
+      );
 
       return new Response(
         JSON.stringify({ ok: true, message: 'Review submitted — thank you!' }),

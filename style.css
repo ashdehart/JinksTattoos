@@ -1393,6 +1393,27 @@ background:
   margin-top: 1.5rem;
 }
 
+/* "See all N reviews →" link below the capped index grid */
+.reviews-see-all {
+  text-align: center;
+  margin-top: 2.2rem;
+}
+.reviews-see-all a {
+  display: inline-block;
+  font-size: .72rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--orange);
+  border-bottom: 1px solid rgba(239,145,21,.35);
+  padding-bottom: .18em;
+  transition: color .22s, border-color .22s;
+  text-decoration: none;
+}
+.reviews-see-all a:hover {
+  color: var(--cream);
+  border-bottom-color: rgba(232,217,179,.5);
+}
+
 /* ─── Review submission form ─── */
 .reviews-form-wrap {
   margin-top: 3.5rem;

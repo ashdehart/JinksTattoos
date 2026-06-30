@@ -57,7 +57,8 @@
     <!-- The menu links. On mobile, these are hidden until the hamburger
          is tapped (see the JS at the bottom of this file). -->
     <ul class="nav-links" id="navLinks">
-      <li><a href="#catalog">Catalog</a></li>   <!-- href="#catalog" jumps to the section with id="catalog" below -->
+      <li><a href="#catalog">Catalog</a></li>
+      <li><a href="reviews.html">Reviews</a></li>
       <li><a href="schedule.html" class="nav-book">Book Now</a></li>
     </ul>
  
@@ -414,25 +415,6 @@
       <h2 class="dh reveal reveal-blur" style="transition-delay:.08s">Reviews</h2>
       <div class="red-rule reveal"></div>
  
-      <!-- The 3 static testimonial cards (pinned Instagram comments). -->
-      <div class="reviews-grid">
-        <div class="review-card reveal">
-          <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
-          <p class="review-text">"You are literally the best!!! Thank you so much!!"</p>
-          <p class="review-platform">Instagram</p>
-        </div>
-        <div class="review-card reveal" style="transition-delay:.1s">
-          <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
-          <p class="review-text">"ahhh girl I love and appreciate you so much, thank you so much for always doing amazing work and bringing my visions to life."</p>
-          <p class="review-platform">Instagram</p>
-        </div>
-        <div class="review-card reveal" style="transition-delay:.2s">
-          <div class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
-          <p class="review-text">"I love when Jolie works her magic."</p>
-          <p class="review-platform">Instagram</p>
-        </div>
-      </div>
-
       <!-- Approved client reviews loaded from reviews.json via JS below -->
       <div id="reviews-dynamic"></div>
 
@@ -503,6 +485,7 @@
     <ul class="footer-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="#catalog">Catalog</a></li>
+      <li><a href="reviews.html">Reviews</a></li>
       <li><a href="schedule.html">Book</a></li>
       <li><a href="https://www.instagram.com/j.lnks" target="_blank" rel="noopener">@j.lnks</a></li>
     </ul>
@@ -1148,7 +1131,9 @@
      the cache-bust only prevents the *browser* cache from hiding them.
   ───────────────────────────────── */
   (function() {
-    const container = document.getElementById('reviews-dynamic');
+    var INDEX_MAX = 6; /* max reviews shown on the homepage */
+
+    var container = document.getElementById('reviews-dynamic');
     if (!container) return;
 
     fetch(REVIEWS_JSON_URL + '?t=' + Date.now())
@@ -1157,14 +1142,24 @@
         return res.json();
       })
       .then(function(data) {
-        var reviews = (data && Array.isArray(data.reviews)) ? data.reviews : [];
-        if (reviews.length === 0) {
+        var allReviews = (data && Array.isArray(data.reviews)) ? data.reviews : [];
+        if (allReviews.length === 0) {
           var empty = document.createElement('p');
           empty.className = 'reviews-empty';
           empty.textContent = 'No submitted reviews yet — be the first.';
           container.appendChild(empty);
           return;
         }
+
+        /* Sort by rating DESC, then by date DESC (newest as tiebreaker).
+           A new 5-star review always enters the top 6; the oldest 5-star
+           (or best 4-star) falls to the full reviews page. */
+        var sorted = allReviews.slice().sort(function(a, b) {
+          var rDiff = (parseInt(b.rating, 10) || 0) - (parseInt(a.rating, 10) || 0);
+          if (rDiff !== 0) return rDiff;
+          return new Date(b.date || 0) - new Date(a.date || 0);
+        });
+        var reviews = sorted.slice(0, INDEX_MAX);
 
         var grid = document.createElement('div');
         grid.className = 'reviews-grid';
@@ -1175,7 +1170,6 @@
           card.className = 'review-card reveal';
           if (i > 0) card.style.transitionDelay = (i * 0.1) + 's';
 
-          /* Stars */
           var stars = document.createElement('div');
           stars.className = 'stars';
           var rating = Math.max(1, Math.min(5, parseInt(r.rating, 10) || 5));
@@ -1191,16 +1185,14 @@
           /* Review body — textContent only, never innerHTML (XSS safe) */
           var body = document.createElement('p');
           body.className = 'review-text';
-          body.textContent = '“' + r.body + '”';
+          body.textContent = '”' + r.body + '”';
           card.appendChild(body);
 
-          /* Author */
           var author = document.createElement('p');
           author.className = 'review-author';
           author.textContent = r.name;
           card.appendChild(author);
 
-          /* Date */
           if (r.date) {
             var dateEl = document.createElement('p');
             dateEl.className = 'review-platform';
@@ -1212,6 +1204,17 @@
         });
 
         container.appendChild(grid);
+
+        /* If more reviews exist than the index cap, show a “See all” link */
+        if (allReviews.length > INDEX_MAX) {
+          var seeAll = document.createElement('p');
+          seeAll.className = 'reviews-see-all';
+          var link = document.createElement('a');
+          link.href = 'reviews.html';
+          link.textContent = 'See all ' + allReviews.length + ' reviews →';
+          seeAll.appendChild(link);
+          container.appendChild(seeAll);
+        }
 
         /* Kick the reveal observer over the new cards */
         grid.querySelectorAll('.reveal').forEach(function(el) {

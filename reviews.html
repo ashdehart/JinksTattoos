@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════════════
+     JINKS TATTOOS — reviews.html (ALL REVIEWS)
+     ─────────────────────────────────────────────────────────────────
+     Full reviews archive page. Shows every approved review from
+     reviews.json, sorted newest first. The homepage shows only the
+     top 6 highest-rated; everything else lives here.
+
+     Structure:
+       1. NAV            — same top bar as the rest of the site
+       2. PAGE HEADER    — eyebrow + heading + rule
+       3. REVIEWS GRID   — all approved reviews, loaded from reviews.json
+       4. SUBMIT FORM    — same form as the homepage
+       5. FOOTER         — same navy footer
+       6. <script>       — cursor, nav, reveal, review loader, form
+     ═══════════════════════════════════════════════════════════════════ -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="only light" />
+  <title>Reviews — Jinks Tattoos</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    body { background: #1a1816; color: #E8D9B3; }
+
+    /* Page wrapper — same dark grunge texture as the booking page */
+    .reviews-page-wrap {
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+      padding-top: 8rem;
+      background-color: #1a1816;
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E"),
+        radial-gradient(ellipse 120% 80% at 20% 90%, rgba(0,0,0,.4) 0%, transparent 70%),
+        radial-gradient(ellipse 100% 60% at 85% 15%, rgba(0,0,0,.35) 0%, transparent 65%),
+        radial-gradient(ellipse 80% 80% at 50% 50%, transparent 30%, rgba(0,0,0,.25) 100%);
+      background-blend-mode: overlay, soft-light, normal, normal, normal;
+    }
+
+    /* Decorative faded diamond — top right */
+    .reviews-page-wrap::before {
+      content: '♦';
+      position: absolute;
+      top: 14%; right: 6%;
+      font-size: 9rem;
+      color: #E1291D;
+      opacity: .04;
+      transform: rotate(-8deg);
+      pointer-events: none;
+      z-index: 0;
+      font-family: serif;
+    }
+
+    /* Content column */
+    .reviews-page-section {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 3rem 2rem 7rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Eyebrow label */
+    .reviews-page-eyebrow {
+      font-size: .62rem;
+      letter-spacing: .42em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 1.2rem;
+      color: #E1291D;
+    }
+
+    /* Big italic heading */
+    .reviews-page-h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 6vw, 4.4rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.1;
+      color: #E8D9B3;
+      margin-bottom: 1.2rem;
+      transform: rotate(-.4deg);
+      display: inline-block;
+    }
+
+    /* Red accent line */
+    .reviews-page-rule {
+      width: 56px;
+      height: 2px;
+      background: #E1291D;
+      margin-bottom: 2.8rem;
+    }
+
+    /* Review count badge */
+    .reviews-page-count {
+      font-size: .65rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(232,217,179,.35);
+      margin-bottom: 2rem;
+      display: block;
+    }
+
+    /* State messages */
+    .reviews-page-empty {
+      font-size: .72rem;
+      letter-spacing: .16em;
+      color: rgba(232,217,179,.22);
+      text-align: center;
+      padding: 4rem 0;
+    }
+    .reviews-page-loading {
+      font-size: .72rem;
+      letter-spacing: .16em;
+      color: rgba(232,217,179,.22);
+      text-align: center;
+      padding: 4rem 0;
+    }
+
+    /* "Back to homepage" link at top */
+    .reviews-page-back {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .65rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(232,217,179,.38);
+      text-decoration: none;
+      margin-bottom: 3rem;
+      transition: color .22s;
+    }
+    .reviews-page-back:hover { color: #EF9115; }
+
+    /* Override the reviews-grid on this page to support more columns */
+    .reviews-page-section .reviews-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    /* Eyebrow / heading colors inside this dark page */
+    .reviews-page-section .eyebrow { color: #EF9115; }
+    .reviews-page-section .dh      { color: #E8D9B3; }
+    .reviews-page-section .red-rule { background: #E1291D; }
+
+    @media (max-width: 860px) {
+      .reviews-page-wrap::before { display: none; }
+      .reviews-page-section .reviews-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+  <div id="grain"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       NAV BAR
+       ═══════════════════════════════════════════════════════════════ -->
+  <nav id="nav">
+    <a href="index.html" class="nav-home-link">Home</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html#catalog">Catalog</a></li>
+      <li><a href="reviews.html" aria-current="page">Reviews</a></li>
+      <li><a href="schedule.html" class="nav-book">Book Now</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       REVIEWS ARCHIVE
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="reviews-page-wrap">
+    <div class="reviews-page-section">
+
+      <a href="index.html" class="reviews-page-back">← Back to home</a>
+
+      <span class="reviews-page-eyebrow">Client Love</span>
+      <h1 class="reviews-page-h1">All Reviews</h1>
+      <div class="reviews-page-rule"></div>
+
+      <!-- Dynamic reviews injected here by JS -->
+      <div id="reviews-all">
+        <p class="reviews-page-loading">Loading reviews…</p>
+      </div>
+
+      <!-- ── Review submission form ───────────────────────────────── -->
+      <div class="reviews-form-wrap">
+        <span class="eyebrow reveal">Leave a Review</span>
+        <h3 class="dh reveal" style="transition-delay:.06s; font-size:clamp(1.4rem,3vw,2rem); font-family:var(--serif); font-weight:300; font-style:italic; margin-bottom:1rem;">Share Your Experience</h3>
+        <div class="red-rule reveal"></div>
+
+        <form id="review-form" novalidate>
+          <input name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <input type="hidden" name="loaded-at" id="loadedAt" />
+
+          <div class="review-form-field">
+            <label for="reviewer-name">Your Name</label>
+            <input type="text" id="reviewer-name" name="reviewer-name" maxlength="80" autocomplete="name" placeholder="e.g. Sarah M." />
+            <span class="field-error" id="name-error">Please enter your name.</span>
+          </div>
+
+          <div class="review-form-field">
+            <span class="star-rating-label">Rating</span>
+            <div class="star-rating" role="radiogroup" aria-label="Star rating">
+              <input type="radio" name="rating" id="star5" value="5" /><label for="star5" title="5 stars">★</label>
+              <input type="radio" name="rating" id="star4" value="4" /><label for="star4" title="4 stars">★</label>
+              <input type="radio" name="rating" id="star3" value="3" /><label for="star3" title="3 stars">★</label>
+              <input type="radio" name="rating" id="star2" value="2" /><label for="star2" title="2 stars">★</label>
+              <input type="radio" name="rating" id="star1" value="1" /><label for="star1" title="1 star">★</label>
+            </div>
+            <span class="field-error" id="rating-error">Please select a star rating.</span>
+          </div>
+
+          <div class="review-form-field">
+            <label for="review-body">Your Review</label>
+            <textarea id="review-body" name="body" rows="5" maxlength="800" placeholder="Tell us about your experience (10–800 characters)"></textarea>
+            <span class="field-error" id="body-error">Please write at least 10 characters.</span>
+          </div>
+
+          <button type="submit" class="review-submit-btn">
+            <span class="btn-text">Submit Review</span>
+            <span class="btn-spinner" aria-hidden="true"></span>
+          </button>
+        </form>
+
+        <div id="review-form-status" role="alert" aria-live="polite"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       FOOTER
+       ═══════════════════════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-logo">Jinks Tattoos</div>
+    <ul class="footer-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#catalog">Catalog</a></li>
+      <li><a href="reviews.html">Reviews</a></li>
+      <li><a href="schedule.html">Book</a></li>
+      <li><a href="https://www.instagram.com/j.lnks" target="_blank" rel="noopener">@j.lnks</a></li>
+    </ul>
+    <p class="footer-copy">© 2025 Jolie Lowder · Jinks Tattoos · Garden of Ink, Ogden UT</p>
+  </footer>
+
+
+  <script>
+
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+
+  const P = { red:'#E1291D', navy:'#07376A', orange:'#EF9115', cream:'#E8D9B3', black:'#0e0d0d' };
+
+  /* ── Custom cursor ── */
+  const cur  = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  document.addEventListener('mousemove', function(e) {
+    cur.style.left  = e.clientX + 'px'; cur.style.top  = e.clientY + 'px';
+    ring.style.left = e.clientX + 'px'; ring.style.top = e.clientY + 'px';
+  });
+  document.querySelectorAll('a,button').forEach(function(el) {
+    el.addEventListener('mouseenter', function() {
+      cur.style.width='20px'; cur.style.height='20px';
+      cur.style.background=P.red; cur.style.borderRadius='3px';
+      ring.style.width='54px'; ring.style.height='54px';
+      ring.style.borderColor='rgba(225,41,29,.5)';
+    });
+    el.addEventListener('mouseleave', function() {
+      cur.style.width='10px'; cur.style.height='10px';
+      cur.style.background=P.orange; cur.style.borderRadius='50%';
+      ring.style.width='36px'; ring.style.height='36px';
+      ring.style.borderColor='rgba(239,145,21,.45)';
+    });
+  });
+
+  /* ── Nav scroll effect ── */
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function() {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  /* ── Mobile hamburger ── */
+  var toggle   = document.getElementById('navToggle');
+  var navLinks = document.getElementById('navLinks');
+  toggle.addEventListener('click', function() {
+    var open = navLinks.classList.toggle('open');
+    var sp = toggle.querySelectorAll('span');
+    sp[0].style.transform = open ? 'rotate(45deg) translate(4px,4px)'   : '';
+    sp[1].style.opacity   = open ? '0' : '1';
+    sp[2].style.transform = open ? 'rotate(-45deg) translate(4px,-4px)' : '';
+  });
+
+  /* ── Scroll reveal ── */
+  var revObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        revObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal, .red-rule').forEach(function(el) {
+    revObs.observe(el);
+  });
+
+  /* ── Review system config ── */
+  var WORKER_URL       = 'https://jinks-review-worker.jinks.workers.dev';
+  var REVIEWS_JSON_URL = 'https://raw.githubusercontent.com/ashdehart/JinksTattoos/master/reviews.json';
+
+  /* ── Build a review card DOM node ── */
+  function buildCard(r, i) {
+    var card = document.createElement('div');
+    card.className = 'review-card reveal';
+    if (i > 0) card.style.transitionDelay = Math.min(i * 0.08, 0.6) + 's';
+
+    var stars = document.createElement('div');
+    stars.className = 'stars';
+    var rating = Math.max(1, Math.min(5, parseInt(r.rating, 10) || 5));
+    for (var s = 0; s < 5; s++) {
+      var star = document.createElement('span');
+      star.className = 'star';
+      star.textContent = '★';
+      star.style.opacity = s < rating ? '1' : '0.18';
+      stars.appendChild(star);
+    }
+    card.appendChild(stars);
+
+    var body = document.createElement('p');
+    body.className = 'review-text';
+    body.textContent = '"' + r.body + '"';
+    card.appendChild(body);
+
+    var author = document.createElement('p');
+    author.className = 'review-author';
+    author.textContent = r.name;
+    card.appendChild(author);
+
+    if (r.date) {
+      var dateEl = document.createElement('p');
+      dateEl.className = 'review-platform';
+      dateEl.textContent = r.date;
+      card.appendChild(dateEl);
+    }
+
+    return card;
+  }
+
+  /* ── All-reviews loader ── */
+  (function() {
+    var container = document.getElementById('reviews-all');
+    if (!container) return;
+
+    fetch(REVIEWS_JSON_URL + '?t=' + Date.now())
+      .then(function(res) {
+        if (!res.ok) throw new Error('fetch failed');
+        return res.json();
+      })
+      .then(function(data) {
+        var reviews = (data && Array.isArray(data.reviews)) ? data.reviews : [];
+
+        container.innerHTML = '';
+
+        if (reviews.length === 0) {
+          var empty = document.createElement('p');
+          empty.className = 'reviews-page-empty';
+          empty.textContent = 'No submitted reviews yet — be the first below.';
+          container.appendChild(empty);
+          return;
+        }
+
+        var count = document.createElement('span');
+        count.className = 'reviews-page-count';
+        count.textContent = reviews.length + ' verified review' + (reviews.length === 1 ? '' : 's');
+        container.appendChild(count);
+
+        var grid = document.createElement('div');
+        grid.className = 'reviews-grid';
+
+        /* reviews.json is already sorted newest-first by the GitHub Action */
+        reviews.forEach(function(r, i) {
+          grid.appendChild(buildCard(r, i));
+        });
+
+        container.appendChild(grid);
+
+        grid.querySelectorAll('.reveal').forEach(function(el) {
+          revObs.observe(el);
+        });
+      })
+      .catch(function() {
+        container.innerHTML = '';
+        var err = document.createElement('p');
+        err.className = 'reviews-page-empty';
+        err.textContent = 'Could not load reviews right now — please try refreshing.';
+        container.appendChild(err);
+      });
+  })();
+
+  /* ── Review submission form ── */
+  (function() {
+    var loadedAt = Date.now();
+    var loadedAtField = document.getElementById('loadedAt');
+    if (loadedAtField) loadedAtField.value = loadedAt;
+
+    var form   = document.getElementById('review-form');
+    var status = document.getElementById('review-form-status');
+    var btn    = form ? form.querySelector('.review-submit-btn') : null;
+    if (!form || !btn) return;
+
+    function showFieldError(id, show) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('visible', show);
+    }
+    function markField(inputId, hasError) {
+      var el = document.getElementById(inputId);
+      if (el) el.classList.toggle('input-error', hasError);
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      ['reviewer-name', 'review-body'].forEach(function(id) { markField(id, false); });
+      showFieldError('name-error', false);
+      showFieldError('rating-error', false);
+      showFieldError('body-error', false);
+      status.className = '';
+      status.textContent = '';
+
+      var name        = (form.querySelector('#reviewer-name').value || '').trim();
+      var body        = (form.querySelector('#review-body').value || '').trim();
+      var ratingInput = form.querySelector('input[name="rating"]:checked');
+      var rating      = ratingInput ? parseInt(ratingInput.value, 10) : 0;
+      var honeypot    = (form.querySelector('input[name="website"]') || {}).value || '';
+
+      var valid = true;
+      if (!name || name.length > 80)         { markField('reviewer-name', true); showFieldError('name-error', true);   valid = false; }
+      if (!rating || rating < 1 || rating > 5){ showFieldError('rating-error', true);                                  valid = false; }
+      if (!body || body.length < 10 || body.length > 800) { markField('review-body', true); showFieldError('body-error', true); valid = false; }
+      if (!valid) return;
+
+      btn.disabled = true;
+      btn.classList.add('loading');
+
+      fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, rating: rating, body: body, loadedAt: loadedAt, website: honeypot })
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error(res.status);
+        form.style.display = 'none';
+        status.className = 'success';
+        status.textContent = 'Thank you! Your review has been submitted and will appear once approved.';
+      })
+      .catch(function() {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        status.className = 'error';
+        status.textContent = 'Something went wrong — please try again in a moment.';
+      });
+    });
+  })();
+
+  </script>
+
+</body>
+</html>
